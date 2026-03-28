@@ -136,7 +136,7 @@ function TenantDashboardInner() {
                 </div>
 
                 <div className="mt-8 flex gap-3">
-                  <Link href={`/pg?id=${currentPg.id}`} className="flex-1">
+                  <Link href={`/pg/${currentPg.id}`} className="flex-1">
                     <Button variant="secondary" className="w-full">View Details</Button>
                   </Link>
                   {currentPg.status === "ACCEPTED" && !currentPg.is_moving_out && (
