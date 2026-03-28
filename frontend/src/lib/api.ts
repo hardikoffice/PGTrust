@@ -1,5 +1,7 @@
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL || 
+  process.env.NEXT_PUBLIC_API_BASE_URL || 
+  "http://127.0.0.1:8000/api/v1";
 
 /** API server origin (no /api/v1) for static uploads and other non-JSON routes. */
 export function apiOrigin(): string {

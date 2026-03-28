@@ -27,7 +27,8 @@ Follow these steps to deploy your platform using the Vercel (Frontend), Render (
 1.  Go to [Vercel](https://vercel.com/) and import your project.
 2.  Set **Root Directory** to `frontend`.
 3.  Add the **Environment Variable**:
-    -   `NEXT_PUBLIC_API_URL`: Your Render Web Service URL (e.g., `https://pg-trust-backend.onrender.com`).
+    -   `NEXT_PUBLIC_API_URL`: `https://your-backend.onrender.com/api/v1`
+    -   *CRITICAL: Make sure to include the `/api/v1` at the end!*
 4.  Click **Deploy**.
 
 ## Final Step: Link Everything
