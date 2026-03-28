@@ -35,6 +35,7 @@ export function AppShell({ role, children }: Props) {
     { href: "/tenant/dashboard", label: "Dashboard" },
     { href: "/tenant/search", label: "Search" },
     { href: "/tenant/requests", label: "Requests" },
+    { href: "/tenant/damage-reports", label: "Damage Reports" },
     { href: "/tenant/profile", label: "Profile" },
   ];
   const ownerLinks = [

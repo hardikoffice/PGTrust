@@ -111,6 +111,8 @@ function Inner() {
       const fd = new FormData();
       fd.append("tenant_id", selectedTenant);
       fd.append("score", String(result.score));
+      fd.append("damages", JSON.stringify(result.damages));
+      fd.append("reasoning", result.reasoning);
       const res = await apiFetch<{ message: string; new_trust_score: number; points_applied: number }>("/damages/apply-score", {
         method: "POST",
         auth: true,

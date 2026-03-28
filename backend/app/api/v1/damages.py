@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import require_role
 from app.core.config import settings
 from app.core.database import get_db
+from app.models.damage_report import DamageReport
 from app.models.enums import Role
 from app.models.tenant import Tenant
 from app.models.user import User
@@ -105,10 +106,12 @@ async def evaluate_damages(
 def apply_damage_score(
     tenant_id: str = Form(...),
     score: int = Form(...),
+    damages: str = Form(default="[]"),
+    reasoning: str = Form(default=""),
     db: Session = Depends(get_db),
-    _: User = Depends(require_role(Role.OWNER)),
+    user: User = Depends(require_role(Role.OWNER)),
 ):
-    """Apply the AI damage score to a tenant's trust score."""
+    """Apply the AI damage score to a tenant's trust score and save the report."""
     try:
         t_uuid = uuid.UUID(tenant_id)
     except Exception:
@@ -132,10 +135,60 @@ def apply_damage_score(
 
     tenant.trust_score = max(0, tenant.trust_score + points)
     db.add(tenant)
+
+    # Parse damages list
+    try:
+        damages_list = json.loads(damages) if isinstance(damages, str) else damages
+    except Exception:
+        damages_list = []
+
+    # Save the report
+    report = DamageReport(
+        tenant_id=t_uuid,
+        owner_id=user.id,
+        score=score,
+        damages=damages_list,
+        reasoning=reasoning,
+        points_applied=points,
+    )
+    db.add(report)
     db.commit()
 
     return {
         "message": f"Trust score updated by {points:+d} points.",
         "new_trust_score": tenant.trust_score,
         "points_applied": points,
+    }
+
+
+@router.get("/my-reports")
+def get_my_damage_reports(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.TENANT)),
+):
+    """Get all damage assessment reports for the authenticated tenant."""
+    from sqlalchemy import select
+
+    rows = (
+        db.execute(
+            select(DamageReport)
+            .where(DamageReport.tenant_id == user.id)
+            .order_by(DamageReport.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+
+    return {
+        "reports": [
+            {
+                "id": str(r.id),
+                "score": r.score,
+                "damages": r.damages,
+                "reasoning": r.reasoning,
+                "points_applied": r.points_applied,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ]
     }
