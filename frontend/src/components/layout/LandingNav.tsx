@@ -26,7 +26,7 @@ export function LandingNav() {
           className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded-lg group"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="PG Trust" className="h-8 w-auto hover:origin-center transition-transform hover:scale-105" />
+          <img src="/logo.png" alt="PG Trust" className="h-10 w-auto hover:origin-center transition-transform hover:scale-105" />
           <span className="text-lg font-bold tracking-tight text-zinc-900 group-hover:text-yellow-600 transition-colors hidden sm:block">PG Trust</span>
         </Link>
 
