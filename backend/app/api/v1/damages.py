@@ -63,8 +63,9 @@ async def evaluate_damages(
 
     # Configure Gemini
     genai.configure(api_key=settings.gemini_api_key)
+    # Using 'gemini-1.5-pro' for superior visual reasoning in property inspections
     model = genai.GenerativeModel(
-        "gemini-1.5-flash",
+        "gemini-1.5-pro",
         generation_config=genai.GenerationConfig(
             response_mime_type="application/json",
         ),

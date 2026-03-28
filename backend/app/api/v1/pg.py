@@ -36,17 +36,6 @@ _ALLOWED_IMAGE_TYPES = {
 }
 _MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5MB
 
-# backend/uploads/pg_images — served at /uploads/pg_images/<file>
-_BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-_UPLOAD_ROOT = _BACKEND_ROOT / "uploads" / "pg_images"
-_ALLOWED_IMAGE_TYPES = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-    "image/gif": ".gif",
-}
-_MAX_IMAGE_BYTES = 5 * 1024 * 1024
-
 router = APIRouter(prefix="/pg", tags=["pg"])
 
 
@@ -109,8 +98,6 @@ async def upload_pg_image(
         )
     # Initialize Cloudinary
     if not all([settings.cloudinary_cloud_name, settings.cloudinary_api_key, settings.cloudinary_api_secret]):
-        # Fallback to local if not configured, or raise error? 
-        # User wants Cloudinary, so let's raise error if missing.
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Cloudinary is not configured. Please set CLOUDINARY environment variables."

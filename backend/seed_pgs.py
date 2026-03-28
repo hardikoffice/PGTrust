@@ -34,8 +34,8 @@ def seed():
                 "rent": 12500,
                 "rating": 4.5,
                 "amenities": ["WiFi", "AC", "Laundry", "Gym"],
-                "images": ["/uploads/pg_images/common_room.jpg"],
-                "gender_preference": GenderPreference.UNISEX,
+                "images": ["https://res.cloudinary.com/dpwkfbalx/image/upload/v1774729462/pg_trust/seed/premium_pg_room.jpg"],
+                "gender_preference": GenderPreference.ANY,
                 "description": "Premium stay with all modern amenities in the heart of Indiranagar."
             },
             {
@@ -44,7 +44,7 @@ def seed():
                 "rent": 11000,
                 "rating": 4.2,
                 "amenities": ["WiFi", "Cleaning", "Power Backup"],
-                "images": ["/uploads/pg_images/common_room.jpg"],
+                "images": ["https://res.cloudinary.com/dpwkfbalx/image/upload/v1774729462/pg_trust/seed/premium_pg_room.jpg"],
                 "gender_preference": GenderPreference.MALE,
                 "description": "Affordable and clean living space for professionals."
             },
@@ -54,7 +54,7 @@ def seed():
                 "rent": 9500,
                 "rating": 4.0,
                 "amenities": ["WiFi", "Food", "AC"],
-                "images": ["/uploads/pg_images/common_room.jpg"],
+                "images": ["https://res.cloudinary.com/dpwkfbalx/image/upload/v1774729462/pg_trust/seed/premium_pg_room.jpg"],
                 "gender_preference": GenderPreference.FEMALE,
                 "description": "Safe and hygienic PG for girls near corporate hubs."
             },
@@ -64,8 +64,8 @@ def seed():
                 "rent": 13000,
                 "rating": 4.7,
                 "amenities": ["WiFi", "Gym", "Parking"],
-                "images": ["/uploads/pg_images/common_room.jpg"],
-                "gender_preference": GenderPreference.UNISEX,
+                "images": ["https://res.cloudinary.com/dpwkfbalx/image/upload/v1774729462/pg_trust/seed/premium_pg_room.jpg"],
+                "gender_preference": GenderPreference.ANY,
                 "description": "Luxury PG with spacious rooms and top-tier amenities."
             },
             {
@@ -74,8 +74,8 @@ def seed():
                 "rent": 15000,
                 "rating": 4.8,
                 "amenities": ["WiFi", "Balcony", "Private Kitchen"],
-                "images": ["/uploads/pg_images/common_room.jpg"],
-                "gender_preference": GenderPreference.UNISEX,
+                "images": ["https://res.cloudinary.com/dpwkfbalx/image/upload/v1774729462/pg_trust/seed/premium_pg_room.jpg"],
+                "gender_preference": GenderPreference.ANY,
                 "description": "Modern studio-style living in a prime location."
             }
         ]
