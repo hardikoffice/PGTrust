@@ -33,3 +33,6 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Markdown (kept out of repo; use `git add -f file.md` to force)
+*.md
