@@ -128,7 +128,7 @@ def get_tenant_profile(
                 and_(
                     Request.tenant_id == tenant_uuid,
                     PGListing.owner_id == user.id,
-                    Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED])
+                    Request.status == RequestStatus.ACCEPTED
                 )
             )
         ).first()
@@ -188,7 +188,7 @@ def get_current_pg(
             .where(
                 and_(
                     Request.tenant_id == user.id,
-                    Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED]),
+                    Request.status == RequestStatus.ACCEPTED,
                 )
             )
             .order_by(Request.decision_date.desc())
