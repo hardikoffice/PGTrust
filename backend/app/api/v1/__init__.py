@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, feedback, owner, pg, rent, requests, tenant, user
+from app.api.v1 import auth, damages, feedback, owner, pg, rent, requests, tenant, user
 
 
 api_router = APIRouter(prefix="/api/v1")
@@ -12,3 +12,4 @@ api_router.include_router(pg.router)
 api_router.include_router(requests.router)
 api_router.include_router(feedback.router)
 api_router.include_router(rent.router)
+api_router.include_router(damages.router)

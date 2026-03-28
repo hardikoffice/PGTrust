@@ -105,6 +105,26 @@ function Inner() {
           </div>
           <div className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-emerald-500/5 group-hover:bg-emerald-500/10 transition-colors" />
         </div>
+
+        <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm transition-all hover:shadow-md md:col-span-2">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex-1">
+              <div className="font-display text-xs font-bold uppercase tracking-widest text-purple-500">
+                AI Powered
+              </div>
+              <h3 className="mt-2 font-display text-2xl font-bold text-zinc-900">Damage Assessment</h3>
+              <p className="mt-2 text-sm text-zinc-600 max-w-xl">
+                Upload move-in and move-out photos to get an AI-powered property damage analysis using Google Gemini.
+              </p>
+            </div>
+            <Link href="/owner/damage-assessment" className="shrink-0">
+              <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-600/20 h-14 px-10 hover:from-purple-700 hover:to-indigo-700">
+                Analyze Damages
+              </Button>
+            </Link>
+          </div>
+          <div className="absolute -right-12 -bottom-12 h-40 w-40 rounded-full bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors" />
+        </div>
       </div>
     </div>
   );

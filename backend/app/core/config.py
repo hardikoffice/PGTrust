@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     cloudinary_api_key: str | None = Field(default=None, alias="CLOUDINARY_API_KEY")
     cloudinary_api_secret: str | None = Field(default=None, alias="CLOUDINARY_API_SECRET")
 
+    # Gemini AI Settings
+    gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
+
 
 settings = Settings()
 
