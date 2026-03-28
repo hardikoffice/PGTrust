@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { PgThumbnail } from "@/components/features/PgThumbnail";
-import { LandingNav } from "@/components/layout/LandingNav";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { apiFetch } from "@/lib/api";
@@ -60,7 +59,6 @@ export default function PublicSearchPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <LandingNav />
 
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-6">

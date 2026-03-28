@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { apiFetch, resolveMediaUrl } from "@/lib/api";
-import { LandingNav } from "@/components/layout/LandingNav";
 
 type PGDetail = {
   id: string;
@@ -100,7 +99,6 @@ export default function PublicPgDetailPage() {
   if (err) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <LandingNav />
         <main className="mx-auto max-w-5xl px-4 py-12">
           <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-red-700">
             {err}
@@ -113,7 +111,6 @@ export default function PublicPgDetailPage() {
   if (!pg) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <LandingNav />
         <main className="mx-auto max-w-5xl px-4 py-12">
           <div className="text-sm text-zinc-600">Loading...</div>
         </main>
@@ -123,7 +120,6 @@ export default function PublicPgDetailPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <LandingNav />
       
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid gap-6">

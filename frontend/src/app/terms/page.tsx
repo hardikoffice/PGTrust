@@ -1,11 +1,9 @@
 "use client";
 
-import { LandingNav } from "@/components/layout/LandingNav";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col">
-      <LandingNav />
       <main className="mx-auto max-w-3xl px-4 py-16 flex-grow">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mb-8">Terms of Service</h1>
         <div className="prose prose-zinc prose-sm">

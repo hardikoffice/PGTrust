@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 import { Footer } from "@/components/layout/Footer";
+import { LandingNav } from "@/components/layout/LandingNav";
 
 export default function RootLayout({
   children,
@@ -19,6 +20,7 @@ export default function RootLayout({
       className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">
+        <LandingNav />
         <div className="flex-grow">{children}</div>
         <Footer />
       </body>

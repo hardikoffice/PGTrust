@@ -1,6 +1,5 @@
 "use client";
 
-import { LandingNav } from "@/components/layout/LandingNav";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useState } from "react";
@@ -10,7 +9,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col">
-      <LandingNav />
       <main className="mx-auto max-w-xl px-4 py-16 flex-grow w-full">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mb-2">Contact Us</h1>
         <p className="text-zinc-600 mb-8">Have questions or need help? Reach out to our support team.</p>

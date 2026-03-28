@@ -78,22 +78,6 @@ export function AppShell({ role, children }: Props) {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 md:hidden">
-          <Link href="/" className="text-base font-semibold">
-            PG Trust
-          </Link>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setToken(null);
-              router.push("/login");
-              router.refresh();
-            }}
-          >
-            Logout
-          </Button>
-        </header>
-
         <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-8">
           {children}
         </main>

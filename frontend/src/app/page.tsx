@@ -2,13 +2,11 @@ import Link from "next/link";
 
 import { HomePgSearch } from "@/components/features/HomePgSearch";
 import { LandingHero } from "@/components/features/LandingHero";
-import { LandingNav } from "@/components/layout/LandingNav";
 import { TrustScoreHomeCard } from "@/components/features/TrustScoreHomeCard";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50">
-      <LandingNav />
 
       <main className="mx-auto max-w-5xl px-4 py-12">
         <LandingHero />
