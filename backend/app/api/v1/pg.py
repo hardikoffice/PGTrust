@@ -1,11 +1,14 @@
 import uuid
 from pathlib import Path
+import cloudinary
+import cloudinary.uploader
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_role
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.enums import GenderPreference, Role
 from app.models.pg_listing import PGListing
@@ -24,6 +27,14 @@ from app.schemas.pg import (
     PGCard,
     PGResidentItem,
 )
+
+_ALLOWED_IMAGE_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+}
+_MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5MB
 
 # backend/uploads/pg_images — served at /uploads/pg_images/<file>
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -96,12 +107,34 @@ async def upload_pg_image(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Image too large (max 5MB).",
         )
-    ext = _ALLOWED_IMAGE_TYPES[content_type]
-    name = f"{uuid.uuid4().hex}{ext}"
-    _UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
-    dest = _UPLOAD_ROOT / name
-    dest.write_bytes(raw)
-    return PGImageUploadResponse(url=f"/uploads/pg_images/{name}")
+    # Initialize Cloudinary
+    if not all([settings.cloudinary_cloud_name, settings.cloudinary_api_key, settings.cloudinary_api_secret]):
+        # Fallback to local if not configured, or raise error? 
+        # User wants Cloudinary, so let's raise error if missing.
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Cloudinary is not configured. Please set CLOUDINARY environment variables."
+        )
+
+    cloudinary.config(
+        cloud_name=settings.cloudinary_cloud_name,
+        api_key=settings.cloudinary_api_key,
+        api_secret=settings.cloudinary_api_secret,
+        secure=True
+    )
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            raw,
+            folder="pg_trust/pg_images",
+            resource_type="image"
+        )
+        return PGImageUploadResponse(url=upload_result["secure_url"])
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cloudinary upload failed: {str(e)}"
+        )
 
 
 @router.get("/mine", response_model=list[PGDetailResponse])
