@@ -267,17 +267,38 @@ def complete_move_out(
     # Adjust Trust Score
     tenant = db.get(Tenant, req.tenant_id)
     if tenant:
-        avg_rating = (body.payment_rating + body.behavior_rating + body.property_rating + body.stability_rating) / 4.0
+        # Weighted criteria
+        # Payment: 40%, Property: 30%, Behavior: 20%, Stability: 10%
+        weighted_score = (
+            body.payment_rating * 0.40 +
+            body.property_rating * 0.30 +
+            body.behavior_rating * 0.20 +
+            body.stability_rating * 0.10
+        )
         
-        points_to_add = 0
-        if avg_rating > 80:
-            points_to_add = 20
-        elif avg_rating > 60:
-            points_to_add = 10
-        elif avg_rating < 40:
-            points_to_add = -20
+        points = 0
+        if weighted_score >= 95:
+            points = 40
+        elif weighted_score >= 90:
+            points = 30
+        elif weighted_score >= 80:
+            points = 20
+        elif weighted_score >= 70:
+            points = 10
+        elif weighted_score >= 60:
+            points = 5
+        elif weighted_score >= 50:
+            points = 0
+        elif weighted_score >= 40:
+            points = -10
+        elif weighted_score >= 30:
+            points = -20
+        elif weighted_score >= 20:
+            points = -30
+        else:
+            points = -50
             
-        tenant.trust_score = max(0, tenant.trust_score + points_to_add)
+        tenant.trust_score = max(0, tenant.trust_score + points)
         db.add(tenant)
 
     db.commit()

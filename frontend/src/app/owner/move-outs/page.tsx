@@ -18,15 +18,6 @@ type MoveOutRequest = {
   is_moving_out: boolean;
 };
 
-// Trust Score calculation preview based on backend logic
-function getExpectedScoreChange(payment: number, behavior: number, property: number, stability: number) {
-  const avg = (payment + behavior + property + stability) / 4;
-  if (avg > 80) return { change: "+20", color: "text-emerald-600" };
-  if (avg > 60) return { change: "+10", color: "text-emerald-600" };
-  if (avg < 40) return { change: "-20", color: "text-red-600" };
-  return { change: "0", color: "text-zinc-500" };
-}
-
 export default function MoveOutApprovalsPage() {
   return (
     <RequireRole role="OWNER">
@@ -194,14 +185,6 @@ function Inner() {
                   value={form.comments}
                   onChange={e => setForm({...form, comments: e.target.value})}
                 />
-              </div>
-
-              {/* Score Preview */}
-              <div className="rounded-xl bg-zinc-50 p-4 border border-zinc-100 flex items-center justify-between">
-                <span className="text-sm font-medium text-zinc-700">Estimated Trust Score Impact:</span>
-                <span className={`text-xl font-black ${getExpectedScoreChange(form.payment, form.behavior, form.property, form.stability).color}`}>
-                  {getExpectedScoreChange(form.payment, form.behavior, form.property, form.stability).change} pts
-                </span>
               </div>
 
               {/* Actions */}
