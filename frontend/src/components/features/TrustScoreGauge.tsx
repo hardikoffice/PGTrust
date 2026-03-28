@@ -87,13 +87,17 @@ export function TrustScoreGauge({ score }: { score: number }) {
           </div>
         </div>
 
-        <div className="relative flex flex-col items-center justify-end w-64 h-40 shrink-0">
-          <svg viewBox="0 0 200 120" className="w-full h-full drop-shadow-sm overflow-visible">
+        <div className="relative flex flex-col items-center w-64 shrink-0 mt-6">
+          <svg viewBox="0 0 200 125" className="w-full h-auto drop-shadow-sm overflow-visible">
             {/* Tracks */}
-            <path d={arcPath(0, 0.5)} fill="none" stroke="#ef4444" strokeWidth="16" strokeLinecap="round" />
+            <path d={arcPath(0, 0.5)} fill="none" stroke="#ef4444" strokeWidth="16" />
             <path d={arcPath(0.5, 0.65)} fill="none" stroke="#f59e0b" strokeWidth="16" />
             <path d={arcPath(0.65, 0.75)} fill="none" stroke="#22c55e" strokeWidth="16" />
-            <path d={arcPath(0.75, 1)} fill="none" stroke="#047857" strokeWidth="16" strokeLinecap="round" />
+            <path d={arcPath(0.75, 1)} fill="none" stroke="#047857" strokeWidth="16" />
+
+            {/* End Caps to make outside edges rounded without internal bleeding */}
+            <circle cx="20" cy="100" r="8" fill="#ef4444" />
+            <circle cx="180" cy="100" r="8" fill="#047857" />
             
             {/* Ticks */}
             {[0.5, 0.65, 0.75].map(tick => {
@@ -102,7 +106,7 @@ export function TrustScoreGauge({ score }: { score: number }) {
               const y1 = 100 - 72 * Math.sin(angle);
               const x2 = 100 + 88 * Math.cos(angle);
               const y2 = 100 - 88 * Math.sin(angle);
-              return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="3" />;
+              return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="3" opacity="0.8" />;
             })}
 
             {/* Needle */}
@@ -111,20 +115,21 @@ export function TrustScoreGauge({ score }: { score: number }) {
                 transformOrigin: '100px 100px',
                 transform: `rotate(${fillRatio * 180 - 90}deg)`
               }}
-              className="transition-transform duration-75 ease-out"
+              className="transition-transform duration-1000 ease-out"
             >
-              <polygon points="96,100 104,100 100,25" fill="#27272a" />
-              <circle cx="100" cy="100" r="10" fill="#27272a" />
-              <circle cx="100" cy="100" r="4" fill="#ffffff" />
+              <polygon points="97,100 103,100 100,18" fill="#18181b" />
+              <circle cx="100" cy="100" r="12" fill="#18181b" />
+              <circle cx="100" cy="100" r="6" fill="#ffffff" />
+              <circle cx="100" cy="100" r="2" fill="#18181b" />
             </g>
           </svg>
 
           {/* Center Content */}
-          <div className="absolute -bottom-2 flex flex-col items-center">
-            <div className="font-display text-5xl font-black tabular-nums tracking-tighter text-zinc-900">
+          <div className="flex flex-col items-center -mt-8 z-10 bg-white px-8 pb-4 rounded-t-[3rem]">
+            <div className="font-display text-6xl font-black tabular-nums tracking-tighter text-zinc-900 drop-shadow-sm">
               {display}
             </div>
-            <div className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+            <div className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-1">
               Out of {TRUST_MAX}
             </div>
           </div>
