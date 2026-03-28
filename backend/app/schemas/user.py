@@ -49,6 +49,10 @@ class UserProfileResponse(BaseModel):
     email: str
     full_name: str
     phone_number: str | None
+    date_of_birth: date | None = None
+    gender: str | None = None
+    marital_status: str | None = None
+    income_range: str | None = None
     role: str
     tenant_data: UserTenantData | None = None
     owner_data: UserOwnerData | None = None

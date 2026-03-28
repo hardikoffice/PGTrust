@@ -11,6 +11,10 @@ type TenantProfile = {
   email: string;
   full_name: string;
   phone_number: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  marital_status: string | null;
+  income_range: string | null;
   role: string;
   tenant_data: {
     verification_status: string;
@@ -101,6 +105,28 @@ function Inner() {
 
         <div className="p-10">
           <section className="space-y-6">
+            <h2 className="font-display text-xl font-bold text-zinc-900">Personal Information</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Date of Birth</div>
+                <div className="mt-1 font-semibold text-zinc-900">{profile.date_of_birth || "Not provided"}</div>
+              </div>
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Gender</div>
+                <div className="mt-1 font-semibold text-zinc-900 capitalize">{profile.gender || "Not provided"}</div>
+              </div>
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Marital Status</div>
+                <div className="mt-1 font-semibold text-zinc-900 capitalize">{profile.marital_status || "Not provided"}</div>
+              </div>
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Income Range</div>
+                <div className="mt-1 font-semibold text-zinc-900">{profile.income_range || "Not provided"}</div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-10 space-y-6 border-t border-zinc-100 pt-10">
             <h2 className="font-display text-xl font-bold text-zinc-900">Verification Details</h2>
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-5">
@@ -108,8 +134,8 @@ function Inner() {
                 <div className="mt-1 font-semibold text-zinc-900">{status}</div>
               </div>
               <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-5">
-                <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Member Since</div>
-                <div className="mt-1 font-semibold text-zinc-900">Joined PG Trust</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Contact</div>
+                <div className="mt-1 font-semibold text-zinc-900">{profile.phone_number || "No phone"}</div>
               </div>
             </div>
           </section>

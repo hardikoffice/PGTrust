@@ -165,6 +165,10 @@ def get_tenant_profile(
         email=tenant_user.email,
         full_name=tenant_user.full_name,
         phone_number=tenant_user.phone_number,
+        date_of_birth=tenant_user.date_of_birth,
+        gender=tenant_user.gender,
+        marital_status=tenant_user.marital_status,
+        income_range=tenant_user.income_range,
         role=tenant_user.role.value,
         tenant_data=tenant_data,
         current_stay=current_stay
