@@ -14,6 +14,22 @@ function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
+function arcPath(startPercent: number, endPercent: number) {
+  const cx = 100;
+  const cy = 100;
+  const R = 80;
+  // Sweep from left Pi to right 0
+  const startAngle = Math.PI - (startPercent * Math.PI);
+  const endAngle = Math.PI - (endPercent * Math.PI);
+  
+  const x1 = cx + R * Math.cos(startAngle);
+  const y1 = cy - R * Math.sin(startAngle);
+  const x2 = cx + R * Math.cos(endAngle);
+  const y2 = cy - R * Math.sin(endAngle);
+  
+  return `M ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2}`;
+}
+
 export function TrustScoreGauge({ score }: { score: number }) {
   const target = clampTrustScore(score);
   const [display, setDisplay] = useState(0);
@@ -71,39 +87,41 @@ export function TrustScoreGauge({ score }: { score: number }) {
           </div>
         </div>
 
-        <div className="relative flex h-64 w-64 items-center justify-center shrink-0">
-          {/* Inner Shadow / Background */}
-          <div className="absolute inset-4 rounded-full bg-zinc-50 shadow-inner" />
-          
-          {/* SVGs for Gauge */}
-          <svg className="h-full w-full -rotate-90 transform drop-shadow-sm">
-            {/* Background Circle */}
-            <circle
-              cx="50%"
-              cy="50%"
-              r="45%"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="12"
-              className="text-zinc-100"
-            />
-            {/* Progress Circle */}
-            <circle
-              cx="50%"
-              cy="50%"
-              r="45%"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="12"
-              strokeDasharray={dashArray}
-              strokeLinecap="round"
-              className="text-yellow-400 transition-all duration-500 ease-out"
-            />
+        <div className="relative flex flex-col items-center justify-end w-64 h-40 shrink-0">
+          <svg viewBox="0 0 200 120" className="w-full h-full drop-shadow-sm overflow-visible">
+            {/* Tracks */}
+            <path d={arcPath(0, 0.5)} fill="none" stroke="#ef4444" strokeWidth="16" strokeLinecap="round" />
+            <path d={arcPath(0.5, 0.65)} fill="none" stroke="#f59e0b" strokeWidth="16" />
+            <path d={arcPath(0.65, 0.75)} fill="none" stroke="#22c55e" strokeWidth="16" />
+            <path d={arcPath(0.75, 1)} fill="none" stroke="#047857" strokeWidth="16" strokeLinecap="round" />
+            
+            {/* Ticks */}
+            {[0.5, 0.65, 0.75].map(tick => {
+              const angle = Math.PI - (tick * Math.PI);
+              const x1 = 100 + 72 * Math.cos(angle);
+              const y1 = 100 - 72 * Math.sin(angle);
+              const x2 = 100 + 88 * Math.cos(angle);
+              const y2 = 100 - 88 * Math.sin(angle);
+              return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="3" />;
+            })}
+
+            {/* Needle */}
+            <g 
+              style={{
+                transformOrigin: '100px 100px',
+                transform: `rotate(${fillRatio * 180 - 90}deg)`
+              }}
+              className="transition-transform duration-75 ease-out"
+            >
+              <polygon points="96,100 104,100 100,25" fill="#27272a" />
+              <circle cx="100" cy="100" r="10" fill="#27272a" />
+              <circle cx="100" cy="100" r="4" fill="#ffffff" />
+            </g>
           </svg>
 
           {/* Center Content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-            <div className="font-display text-6xl font-black tabular-nums tracking-tighter text-zinc-900 md:text-7xl">
+          <div className="absolute -bottom-2 flex flex-col items-center">
+            <div className="font-display text-5xl font-black tabular-nums tracking-tighter text-zinc-900">
               {display}
             </div>
             <div className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
