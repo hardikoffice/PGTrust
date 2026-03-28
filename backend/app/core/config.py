@@ -25,10 +25,8 @@ class Settings(BaseSettings):
 
     cors_origins: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")
     
-    # Cloudinary Settings
-    cloudinary_cloud_name: str | None = Field(default=None, alias="CLOUDINARY_CLOUD_NAME")
-    cloudinary_api_key: str | None = Field(default=None, alias="CLOUDINARY_API_KEY")
-    cloudinary_api_secret: str | None = Field(default=None, alias="CLOUDINARY_API_SECRET")
+    # ImgBB Settings
+    imgbb_api_key: str | None = Field(default=None, alias="IMGBB_API_KEY")
 
     # Gemini AI Settings
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")

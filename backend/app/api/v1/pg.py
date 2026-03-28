@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
-import cloudinary
-import cloudinary.uploader
+import base64
+import httpx
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import and_, func, select
@@ -96,31 +96,35 @@ async def upload_pg_image(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Image too large (max 5MB).",
         )
-    # Initialize Cloudinary
-    if not all([settings.cloudinary_cloud_name, settings.cloudinary_api_key, settings.cloudinary_api_secret]):
+    # Upload to ImgBB
+    if not settings.imgbb_api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Cloudinary is not configured. Please set CLOUDINARY environment variables."
+            detail="ImgBB is not configured. Please set IMGBB_API_KEY environment variable."
         )
-
-    cloudinary.config(
-        cloud_name=settings.cloudinary_cloud_name,
-        api_key=settings.cloudinary_api_key,
-        api_secret=settings.cloudinary_api_secret,
-        secure=True
-    )
 
     try:
-        upload_result = cloudinary.uploader.upload(
-            raw,
-            folder="pg_trust/pg_images",
-            resource_type="image"
+        encoded = base64.b64encode(raw).decode("utf-8")
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                "https://api.imgbb.com/1/upload",
+                data={
+                    "key": settings.imgbb_api_key,
+                    "image": encoded,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return PGImageUploadResponse(url=data["data"]["url"])
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"ImgBB upload failed: {e.response.text}"
         )
-        return PGImageUploadResponse(url=upload_result["secure_url"])
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Cloudinary upload failed: {str(e)}"
+            detail=f"Image upload failed: {str(e)}"
         )
 
 
