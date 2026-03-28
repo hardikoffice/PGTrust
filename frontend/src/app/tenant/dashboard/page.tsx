@@ -229,9 +229,11 @@ function TenantDashboardInner() {
             <p className="mt-2 text-sm font-medium text-black/80">
               Payments are verified by owners to maintain your trust score.
             </p>
-            <Button className="mt-6 w-full bg-black text-white hover:bg-zinc-800">
-              View Guide
-            </Button>
+            <Link href="/tenant/guide">
+              <Button className="mt-6 w-full bg-black text-white hover:bg-zinc-800">
+                View Guide
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
