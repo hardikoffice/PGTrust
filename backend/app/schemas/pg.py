@@ -79,3 +79,13 @@ class PGReviewListResponse(BaseModel):
     average_rating: float | None
     total: int
 
+
+class PGResidentItem(BaseModel):
+    id: str  # Request ID
+    tenant_id: str
+    full_name: str
+    phone_number: str | None
+    email: str
+    status: str
+    joined_at: datetime
+

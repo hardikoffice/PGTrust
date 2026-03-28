@@ -127,7 +127,9 @@ function Inner() {
                 <div className="flex min-w-0 gap-3">
                   <PgThumbnail src={pg.coverImage} alt={pg.name} />
                   <div className="min-w-0">
-                    <div className="truncate text-lg font-semibold text-zinc-900">{pg.name}</div>
+                    <Link href={`/owner/properties/${pg.id}/residents`} className="hover:underline">
+                      <div className="truncate text-lg font-semibold text-zinc-900">{pg.name}</div>
+                    </Link>
                     <div className="text-sm text-zinc-600">{pg.location}</div>
                   </div>
                 </div>

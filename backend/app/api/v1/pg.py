@@ -22,6 +22,7 @@ from app.schemas.pg import (
     PGReviewListResponse,
     PGSearchResponse,
     PGCard,
+    PGResidentItem,
 )
 
 # backend/uploads/pg_images — served at /uploads/pg_images/<file>
@@ -345,4 +346,47 @@ def remove_pg(
     pg.active = False
     db.commit()
     return PGRemoveResponse(message="Listing removed. It no longer appears in search.")
+
+
+@router.get("/{pg_id}/residents", response_model=list[PGResidentItem])
+def list_pg_residents(
+    pg_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.OWNER)),
+):
+    """List all active residents (ACCEPTED/COMPLETED requests) for a specific PG."""
+    from app.models.request import Request
+    from app.models.enums import RequestStatus
+    
+    uid = _parse_pg_uuid(pg_id)
+    pg = db.get(PGListing, uid)
+    if not pg or pg.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PG not found or not owned by you")
+
+    rows = db.execute(
+        select(Request, User)
+        .join(User, Request.tenant_id == User.id)
+        .where(
+            and_(
+                Request.pg_id == uid,
+                Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED])
+            )
+        )
+        .order_by(Request.updated_at.desc())
+    ).all()
+
+    results = []
+    for req, tenant_user in rows:
+        results.append(
+            PGResidentItem(
+                id=str(req.id),
+                tenant_id=str(tenant_user.id),
+                full_name=tenant_user.full_name or "Unknown",
+                phone_number=tenant_user.phone_number,
+                email=tenant_user.email,
+                status=req.status.value,
+                joined_at=req.updated_at
+            )
+        )
+    return results
 
