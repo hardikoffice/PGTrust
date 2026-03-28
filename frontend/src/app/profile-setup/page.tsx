@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -8,6 +9,14 @@ import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfileSetupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-50/50 flex items-center justify-center text-zinc-500">Loading…</div>}>
+      <ProfileSetupInner />
+    </Suspense>
+  );
+}
+
+function ProfileSetupInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { profile: user, refresh: mutate } = useAuth();

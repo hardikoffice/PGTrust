@@ -32,7 +32,7 @@ def get_rent_status(
         .where(
             and_(
                 Request.tenant_id == user.id,
-                Request.status == RequestStatus.COMPLETED # Must be active resident
+                Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED])
             )
         )
         .order_by(Request.decision_date.desc())
@@ -98,7 +98,7 @@ def pay_rent(
         select(Request).where(
             and_(
                 Request.tenant_id == user.id,
-                Request.status == RequestStatus.COMPLETED
+                Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED])
             )
         ).order_by(Request.decision_date.desc())
     ).scalar_one_or_none()

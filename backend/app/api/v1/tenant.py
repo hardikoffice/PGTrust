@@ -155,7 +155,7 @@ def get_current_pg(
             "id": str(pg.id),
             "name": pg.name,
             "location": pg.location,
-            "rent": pg.rent,
+            "rent": float(pg.rent),
             "status": r.status.value,
         }
     }
