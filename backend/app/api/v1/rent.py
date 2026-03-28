@@ -134,7 +134,59 @@ def get_pending_verifications(
     db: Session = Depends(get_db),
     user: User = Depends(require_role(Role.OWNER)),
 ):
-    # Find all payments for owner's PGs that are PAID but not VERIFIED
+    # Proactive sync: Find all active tenants for this owner and ensure they have a rent record for this month
+    active_stays = db.execute(
+        select(Request, PGListing)
+        .join(PGListing, PGListing.id == Request.pg_id)
+        .where(
+            and_(
+                PGListing.owner_id == user.id,
+                Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED])
+            )
+        )
+    ).all()
+
+    now = datetime.now()
+    month, year = now.month, now.year
+
+    for req, pg in active_stays:
+        # Check if record exists
+        exists = db.execute(
+            select(RentPayment).where(
+                and_(
+                    RentPayment.request_id == req.id,
+                    RentPayment.month == month,
+                    RentPayment.year == year
+                )
+            )
+        ).scalar_one_or_none()
+
+        if not exists:
+            # Create it
+            status = RentPaymentStatus.PENDING
+            if pg.rent_due_day and now.day > pg.rent_due_day:
+                status = RentPaymentStatus.OVERDUE
+                # Penalty
+                tenant_info = db.get(Tenant, req.tenant_id)
+                if tenant_info:
+                    tenant_info.trust_score = max(0, tenant_info.trust_score - 20)
+                    db.add(tenant_info)
+
+            new_p = RentPayment(
+                request_id=req.id,
+                month=month,
+                year=year,
+                status=status
+            )
+            db.add(new_p)
+    
+    db.commit()
+
+    # Now return all PAID but not VERIFIED (for the list)
+    # AND optionally overdue ones if the owner wants to see them? 
+    # The requirement said "owner can verify... and update score".
+    # Let's keep the return list focused on what needs ACTION (PAID).
+    
     rows = db.execute(
         select(RentPayment, User.full_name)
         .join(Request, Request.id == RentPayment.request_id)

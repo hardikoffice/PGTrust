@@ -22,6 +22,9 @@ def _ensure_sqlite_pg_rating_column() -> None:
         if "rating" not in col_names:
             conn.execute(text("ALTER TABLE pg_listings ADD COLUMN rating NUMERIC(3,2) NOT NULL DEFAULT 4.0"))
             conn.commit()
+        if "rent_due_day" not in col_names:
+            conn.execute(text("ALTER TABLE pg_listings ADD COLUMN rent_due_day INTEGER"))
+            conn.commit()
 
 
 def create_app() -> FastAPI:

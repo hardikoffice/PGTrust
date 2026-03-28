@@ -54,9 +54,11 @@ function Inner() {
             <p className="mt-4 text-sm text-zinc-600">
               New booking requests that require your approval to proceed.
             </p>
-            <Link href="/owner/requests">
-              <Button className="mt-8 w-full shadow-lg shadow-yellow-400/20">Review all requests</Button>
-            </Link>
+            <div className="mt-8 flex flex-col gap-3">
+              <Link href="/owner/requests">
+                <Button className="w-full shadow-lg shadow-yellow-400/20">Review requests</Button>
+              </Link>
+            </div>
           </div>
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-400/5 group-hover:bg-yellow-400/10 transition-colors" />
         </div>
@@ -79,6 +81,26 @@ function Inner() {
             </div>
           </div>
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-zinc-100 group-hover:bg-zinc-200 transition-colors" />
+        </div>
+
+        <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm transition-all hover:shadow-md md:col-span-2">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex-1">
+              <div className="font-display text-xs font-bold uppercase tracking-widest text-zinc-500">
+                Rent Tracking
+              </div>
+              <h3 className="mt-2 font-display text-2xl font-bold text-zinc-900">Payment Verifications</h3>
+              <p className="mt-2 text-sm text-zinc-600 max-w-xl">
+                Track monthly rent schedules and verify payments to update your tenants' trust scores.
+              </p>
+            </div>
+            <Link href="/owner/rent-verifications" className="shrink-0">
+              <Button className="bg-zinc-900 text-white shadow-xl shadow-zinc-900/10 h-14 px-10">
+                Manage Rent
+              </Button>
+            </Link>
+          </div>
+          <div className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-emerald-500/5 group-hover:bg-emerald-500/10 transition-colors" />
         </div>
       </div>
     </div>

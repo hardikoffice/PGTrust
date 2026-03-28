@@ -16,6 +16,13 @@ type TenantProfile = {
     verification_status: string;
     trust_score: number;
   } | null;
+  current_stay: {
+    pg_id: string;
+    pg_name: string;
+    rent: number;
+    rent_due_day: number | null;
+    status: string;
+  } | null;
 };
 
 export default function OwnerTenantProfilePage() {
@@ -106,6 +113,38 @@ function Inner() {
               </div>
             </div>
           </section>
+
+          {profile.current_stay && (
+            <section className="mt-10 space-y-6 border-t border-zinc-100 pt-10">
+              <h2 className="font-display text-xl font-bold text-zinc-900">Current Residency</h2>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">Property</div>
+                    <div className="mt-1 text-lg font-bold text-zinc-900">{profile.current_stay.pg_name}</div>
+                  </div>
+                  <div className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                    profile.current_stay.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' :
+                    profile.current_stay.status === 'PAID' ? 'bg-blue-100 text-blue-700' :
+                    profile.current_stay.status === 'OVERDUE' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    Rent {profile.current_stay.status}
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 text-sm">
+                  <div className="flex justify-between border-b border-zinc-50 pb-2">
+                    <span className="text-zinc-500">Monthly Rent:</span>
+                    <span className="font-semibold text-zinc-900">₹{profile.current_stay.rent.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-zinc-50 pb-2">
+                    <span className="text-zinc-500">Due Day:</span>
+                    <span className="font-semibold text-zinc-900">Day {profile.current_stay.rent_due_day || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           <section className="mt-10 space-y-6">
               <div className="rounded-2xl bg-yellow-50 p-6 border border-yellow-100">

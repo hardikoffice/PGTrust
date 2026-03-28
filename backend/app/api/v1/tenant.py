@@ -111,6 +111,55 @@ def get_tenant_profile(
             trust_score=tenant_info.trust_score,
         )
 
+    # Check residency if current user is OWNER
+    current_stay = None
+    if user.role == Role.OWNER:
+        from app.models.request import Request
+        from app.models.pg_listing import PGListing
+        from app.models.rent_payment import RentPayment, RentPaymentStatus
+        from sqlalchemy import and_, select
+        from datetime import datetime
+
+        # Find if this tenant has an active stay in any of this owner's PGs
+        stay_row = db.execute(
+            select(Request, PGListing)
+            .join(PGListing, PGListing.id == Request.pg_id)
+            .where(
+                and_(
+                    Request.tenant_id == tenant_uuid,
+                    PGListing.owner_id == user.id,
+                    Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED])
+                )
+            )
+        ).first()
+
+        if stay_row:
+            req, pg = stay_row
+            # Find rent status for this month
+            now = datetime.now()
+            payment = db.execute(
+                select(RentPayment).where(
+                    and_(
+                        RentPayment.request_id == req.id,
+                        RentPayment.month == now.month,
+                        RentPayment.year == now.year
+                    )
+                )
+            ).scalar_one_or_none()
+
+            status_str = payment.status.value if payment else "PENDING"
+            # If overdue check
+            if not payment and pg.rent_due_day and now.day > pg.rent_due_day:
+                status_str = "OVERDUE"
+
+            current_stay = {
+                "pg_id": str(pg.id),
+                "pg_name": pg.name,
+                "rent": float(pg.rent),
+                "rent_due_day": pg.rent_due_day,
+                "status": status_str
+            }
+
     return UserProfileResponse(
         id=str(tenant_user.id),
         email=tenant_user.email,
@@ -118,6 +167,7 @@ def get_tenant_profile(
         phone_number=tenant_user.phone_number,
         role=tenant_user.role.value,
         tenant_data=tenant_data,
+        current_stay=current_stay
     )
 
 

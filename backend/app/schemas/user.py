@@ -37,6 +37,13 @@ class UserOwnerData(BaseModel):
     business_name: str | None
     verified_owner: bool
 
+class TenantStayInfo(BaseModel):
+    pg_id: str
+    pg_name: str
+    rent: float
+    rent_due_day: int | None
+    status: str
+
 class UserProfileResponse(BaseModel):
     id: str
     email: str
@@ -45,3 +52,4 @@ class UserProfileResponse(BaseModel):
     role: str
     tenant_data: UserTenantData | None = None
     owner_data: UserOwnerData | None = None
+    current_stay: TenantStayInfo | None = None
