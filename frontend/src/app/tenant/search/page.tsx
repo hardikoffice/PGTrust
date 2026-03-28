@@ -8,7 +8,7 @@ import { RequireRole } from "@/components/layout/RequireRole";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, resolveMediaUrl } from "@/lib/api";
 
 type PGCard = {
   id: string;
@@ -130,73 +130,93 @@ function TenantSearchInner() {
         </div>
       ) : null}
 
-      <div className="grid gap-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {rows.length === 0 && !loading ? (
-          <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
-            No PGs found. Try adjusting filters.
+          <div className="col-span-full rounded-2xl border border-dashed border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
+            No properties found matching your criteria. Try adjusting your filters.
           </div>
         ) : null}
 
         {rows.map((pg) => (
           <div
             key={pg.id}
-            className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 md:flex-row md:items-center md:justify-between"
+            className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-all hover:shadow-xl hover:shadow-black/5 hover:ring-1 hover:ring-zinc-300"
           >
-            <div className="flex min-w-0 gap-3">
-              <Link href={`/tenant/pg/${pg.id}`} className="shrink-0">
-                <PgThumbnail src={pg.image} alt={pg.name} />
-              </Link>
-              <div className="min-w-0">
-              <Link
-                href={`/tenant/pg/${pg.id}`}
-                className="text-lg font-semibold text-zinc-900 hover:underline"
-              >
-                {pg.name}
-              </Link>
-              <div className="text-sm text-zinc-600">{pg.location}</div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm font-medium text-zinc-900">
-                <span>₹{pg.rent}/month</span>
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-900 ring-1 ring-amber-200">
-                  ★ {pg.rating.toFixed(1)}
-                </span>
+            <Link href={`/tenant/pg/${pg.id}`} className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-zinc-100 block">
+              {pg.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={resolveMediaUrl(pg.image)}
+                  alt={pg.name}
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs font-medium uppercase tracking-widest text-zinc-400">
+                  No Photo
+                </div>
+              )}
+              {/* Floating Rating Badge */}
+              <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-zinc-900 shadow-sm backdrop-blur-md">
+                <span className="text-yellow-500">★</span> {pg.rating.toFixed(1)}
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
+            </Link>
+            
+            <div className="flex flex-1 flex-col p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Link href={`/tenant/pg/${pg.id}`} className="font-display text-lg font-bold text-zinc-900 line-clamp-1 hover:underline">
+                    {pg.name}
+                  </Link>
+                  <p className="text-sm font-medium text-zinc-500 line-clamp-1">{pg.location}</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-xl font-black tabular-nums tracking-tight text-zinc-900">₹{pg.rent}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">/ mo</div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-1.5">
                 {(pg.amenities || []).slice(0, 3).map((a) => (
                   <span
                     key={a}
-                    className="rounded-full bg-zinc-100 px-2 py-1 text-xs text-zinc-700"
+                    className="rounded-lg bg-zinc-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600"
                   >
                     {a}
                   </span>
                 ))}
+                {(pg.amenities || []).length > 3 && (
+                  <span className="rounded-lg bg-zinc-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    +{(pg.amenities || []).length - 3}
+                  </span>
+                )}
               </div>
-              </div>
-            </div>
 
-            <div className="flex gap-2">
-              <Link href={`/tenant/pg/${pg.id}`}>
-                <Button variant="secondary">View</Button>
-              </Link>
-              <Button
-                disabled={!verified}
-                onClick={async () => {
-                  try {
-                    await apiFetch("/requests/create", {
-                      method: "POST",
-                      auth: true,
-                      body: JSON.stringify({
-                        pg_id: pg.id,
-                        move_in_date: new Date().toISOString().slice(0, 10),
-                      }),
-                    });
-                    alert("Request sent (PENDING).");
-                  } catch (e) {
-                    alert(e instanceof Error ? e.message : "Failed");
-                  }
-                }}
-              >
-                Request
-              </Button>
+              <div className="mt-6 grid grid-cols-2 gap-2">
+                <Link href={`/tenant/pg/${pg.id}`}>
+                  <Button variant="secondary" className="w-full font-semibold">View</Button>
+                </Link>
+                <Button
+                  className="w-full font-semibold"
+                  disabled={!verified}
+                  onClick={async () => {
+                    try {
+                      await apiFetch("/requests/create", {
+                        method: "POST",
+                        auth: true,
+                        body: JSON.stringify({
+                          pg_id: pg.id,
+                          move_in_date: new Date().toISOString().slice(0, 10),
+                        }),
+                      });
+                      alert("Request sent (PENDING).");
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : "Failed");
+                    }
+                  }}
+                >
+                  Request
+                </Button>
+              </div>
             </div>
           </div>
         ))}
