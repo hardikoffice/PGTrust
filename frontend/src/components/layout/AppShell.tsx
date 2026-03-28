@@ -50,8 +50,10 @@ export function AppShell({ role, children }: Props) {
     <div className="flex min-h-[calc(100vh-0px)] w-full bg-zinc-50">
       <aside className="hidden w-64 border-r border-zinc-200 bg-white p-4 md:flex md:flex-col md:gap-2">
         <div className="flex items-center justify-between pb-2">
-          <Link href="/" className="text-lg font-semibold">
-            PG Trust
+          <Link href="/" className="flex items-center gap-2 group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="PG Trust" className="h-7 w-auto hover:origin-center transition-transform hover:scale-105" />
+            <span className="text-lg font-bold group-hover:text-yellow-600 transition-colors">PG Trust</span>
           </Link>
           <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-zinc-700">
             {role}

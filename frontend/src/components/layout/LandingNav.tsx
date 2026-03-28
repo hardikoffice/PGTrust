@@ -23,9 +23,11 @@ export function LandingNav() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
         <Link
           href="/"
-          className="text-lg font-semibold tracking-tight text-zinc-900 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded-lg"
+          className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded-lg group"
         >
-          PG Trust
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="PG Trust" className="h-8 w-auto hover:origin-center transition-transform hover:scale-105" />
+          <span className="text-lg font-bold tracking-tight text-zinc-900 group-hover:text-yellow-600 transition-colors hidden sm:block">PG Trust</span>
         </Link>
 
         <nav
