@@ -154,6 +154,42 @@ export function TrustScoreGauge({ score }: { score: number }) {
           </div>
         ))}
       </div>
+
+      {/* How to Improve & Significance */}
+      <div className="mt-10 rounded-2xl bg-zinc-50 p-6 sm:p-8">
+        <h3 className="font-display text-lg font-bold text-zinc-900">How Trust Score Works</h3>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+          Your Trust Score is a decentralized reputation indicator shared across the PG Trust network. A higher score unlocks priority approvals, instant bookings, and better rental terms from property owners.
+        </p>
+        
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 text-sm border-t border-zinc-200/60 pt-6">
+          <div className="space-y-3">
+            <h4 className="flex items-center gap-2 font-bold text-zinc-900">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs text-emerald-700">↑</span>
+              How to improve it
+            </h4>
+            <ul className="space-y-2 text-zinc-600">
+              <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">•</span> Pay your rent on or before the due date</li>
+              <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">•</span> Maintain the property and respect house rules</li>
+              <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">•</span> Complete your KYC profile verification</li>
+              <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">•</span> Serve proper notice period before moving out</li>
+            </ul>
+          </div>
+          
+          <div className="space-y-3">
+            <h4 className="flex items-center gap-2 font-bold text-zinc-900">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-xs text-red-700">↓</span>
+              What lowers it
+            </h4>
+            <ul className="space-y-2 text-zinc-600">
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">•</span> Consistently late rent payments</li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">•</span> Causing property damage or disturbances</li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">•</span> Vacating the PG without notifying the owner</li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">•</span> Consistently poor move-out feedback ratings</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
