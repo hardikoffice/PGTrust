@@ -1,0 +1,22 @@
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    environment: str = Field(default="development", alias="ENVIRONMENT")
+    port: int = Field(default=8000, alias="PORT")
+
+    database_url: str = Field(
+        default="sqlite:///./pgtrust.db", alias="DATABASE_URL"
+    )
+
+    secret_key: str = Field(default="dev_secret_change_me", alias="SECRET_KEY")
+    access_token_expire_minutes: int = Field(default=1440, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+
+    cors_origins: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")
+
+
+settings = Settings()
+
