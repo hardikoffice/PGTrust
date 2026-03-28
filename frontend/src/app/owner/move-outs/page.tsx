@@ -70,13 +70,13 @@ function Inner() {
       await apiFetch(`/requests/${selectedReq.id}/complete-move-out`, {
         method: "POST",
         auth: true,
-        body: {
+        body: JSON.stringify({
           payment_rating: Number(form.payment),
           behavior_rating: Number(form.behavior),
           property_rating: Number(form.property),
           stability_rating: Number(form.stability),
           comments: form.comments || null
-        }
+        })
       });
       alert("Move-out approved and feedback submitted!");
       setSelectedReq(null);
