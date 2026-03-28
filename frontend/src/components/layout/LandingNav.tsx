@@ -1,12 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { useAuth } from "@/hooks/useAuth";
+import { setToken } from "@/lib/api";
 
 const linkClass =
   "rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-yellow-400";
 
 export function LandingNav() {
+  const router = useRouter();
+  const { profile, loading } = useAuth();
+
+  const authed = !!profile;
+  const unassigned = profile?.role === "UNASSIGNED";
+  const tenant = profile?.role === "TENANT";
+  const owner = profile?.role === "OWNER";
+
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+    <header className="sticky top-0 z-50 border-b border-zinc-200/50 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
         <Link
           href="/"
           className="text-lg font-semibold tracking-tight text-zinc-900 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded-lg"
@@ -21,27 +35,69 @@ export function LandingNav() {
           <Link href="/search" className={linkClass}>
             PG Search
           </Link>
-          <Link href="/tenant/dashboard" className={linkClass}>
-            My Trust Score
+          <Link
+            href={
+              authed
+                ? owner
+                  ? "/owner/properties"
+                  : tenant
+                    ? "/tenant/dashboard"
+                    : "/role"
+                : "/signup?next=/owner/properties"
+            }
+            className={linkClass}
+          >
+            List PG
           </Link>
-          <Link href="/owner/properties" className={linkClass}>
-            PG List
+          <Link
+            href={
+              authed
+                ? tenant
+                  ? "/tenant/dashboard"
+                  : owner
+                    ? "/owner/dashboard"
+                    : "/role"
+                : "/signup?next=/tenant/dashboard"
+            }
+            className={linkClass}
+          >
+            My Trust Score
           </Link>
         </nav>
 
         <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
-          <Link
-            href="/login"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-black hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          >
-            Sign up
-          </Link>
+          {loading ? (
+            <span className="text-sm text-zinc-400">…</span>
+          ) : authed ? (
+            <>
+              <button
+                type="button"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                onClick={() => {
+                  setToken(null);
+                  router.push("/");
+                  router.refresh();
+                }}
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-black hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -1,27 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #09090b;
   --pg-yellow: #facc15;
+  --font-outfit: 'Outfit', sans-serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--pg-yellow);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-outfit);
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Landing: animated brand headline + staggered tagline */
+@keyframes landing-brand-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes landing-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-brand-headline {
+  background: linear-gradient(
+    100deg,
+    #18181b 0%,
+    #18181b 28%,
+    #a16207 42%,
+    #eab308 50%,
+    #a16207 58%,
+    #18181b 72%,
+    #18181b 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: landing-brand-gradient 9s ease-in-out infinite;
+}
+
+.landing-brand-enter {
+  animation: landing-fade-up 0.85s ease-out forwards;
+}
+
+.landing-tagline-enter {
+  opacity: 0;
+  animation: landing-fade-up 0.85s ease-out 0.15s both;
+}
+
+.landing-hero:hover .landing-interactive-phrase {
+  text-decoration: underline;
+  text-decoration-color: rgb(250 204 21 / 0.85);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-brand-headline {
+    animation: none;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    color: #18181b;
+  }
+
+  .landing-brand-enter,
+  .landing-tagline-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .landing-hero:hover .landing-interactive-phrase {
+    text-decoration: none;
+  }
 }

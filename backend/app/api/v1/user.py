@@ -7,10 +7,34 @@ from app.models.enums import Role, VerificationStatus
 from app.models.owner import Owner
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.schemas.user import SetRoleRequest, UserProfileResponse, UserTenantData
+from app.schemas.user import ProfileResponse, ProfileUpdateRequest, SetRoleRequest, UserProfileResponse, UserTenantData
 
 
 router = APIRouter(prefix="/user", tags=["user"])
+
+
+@router.patch("/me/profile", response_model=ProfileResponse)
+def update_profile(
+    body: ProfileUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if body.full_name is not None:
+        current_user.full_name = body.full_name
+    if body.phone_number is not None:
+        current_user.phone_number = body.phone_number
+    if body.date_of_birth is not None:
+        current_user.date_of_birth = body.date_of_birth
+    if body.gender is not None:
+        current_user.gender = body.gender
+    if body.marital_status is not None:
+        current_user.marital_status = body.marital_status
+    if body.income_range is not None:
+        current_user.income_range = body.income_range
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 
 @router.post("/set-role")

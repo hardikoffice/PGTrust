@@ -15,7 +15,6 @@ class Tenant(Base):
         Uuid(as_uuid=True), ForeignKey("users.id"), primary_key=True
     )
 
-    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
     id_proof_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     verification_status: Mapped[VerificationStatus] = mapped_column(

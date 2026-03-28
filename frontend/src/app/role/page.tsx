@@ -45,7 +45,7 @@ export default function RolePage() {
                     auth: true,
                     body: JSON.stringify({ role: "TENANT" }),
                   });
-                  router.push("/tenant/dashboard");
+                  router.push("/");
                   router.refresh();
                 } catch (e) {
                   setErr(e instanceof Error ? e.message : "Failed to set role");
@@ -75,7 +75,7 @@ export default function RolePage() {
                     auth: true,
                     body: JSON.stringify({ role: "OWNER" }),
                   });
-                  router.push("/owner/dashboard");
+                  router.push("/");
                   router.refresh();
                 } catch (e) {
                   setErr(e instanceof Error ? e.message : "Failed to set role");

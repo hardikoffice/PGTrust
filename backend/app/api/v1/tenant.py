@@ -27,10 +27,11 @@ def update_profile(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tenant profile missing")
 
     if body.date_of_birth is not None:
-        tenant.date_of_birth = body.date_of_birth
+        user.date_of_birth = body.date_of_birth
     if body.address is not None:
         tenant.address = body.address
 
+    db.add(user)
     db.add(tenant)
     db.commit()
     return {"message": "Profile updated successfully."}

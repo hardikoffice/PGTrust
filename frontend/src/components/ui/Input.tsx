@@ -10,11 +10,11 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 
 export function Input({ label, className, ...props }: Props) {
   return (
-    <label className="grid gap-1 text-sm">
-      {label ? <span className="text-zinc-700">{label}</span> : null}
+    <label className="grid gap-1.5 text-sm">
+      {label ? <span className="font-medium text-zinc-700">{label}</span> : null}
       <input
         className={cn(
-          "h-10 rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 outline-none focus:ring-2 focus:ring-yellow-400",
+          "h-11 rounded-xl border border-zinc-200 bg-white px-4 text-zinc-900 shadow-sm outline-none transition-all placeholder:text-zinc-400 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/10",
           className
         )}
         {...props}
@@ -22,4 +22,3 @@ export function Input({ label, className, ...props }: Props) {
     </label>
   );
 }
-

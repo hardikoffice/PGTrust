@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -51,4 +53,27 @@ class PGDetailResponse(BaseModel):
     description: str | None = None
     gender_preference: str | None = None
     active: bool
+
+
+class PGRemoveResponse(BaseModel):
+    message: str
+
+
+class PGReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str | None = Field(default=None, max_length=2000)
+
+
+class PGReviewItem(BaseModel):
+    id: str
+    author_display_name: str
+    rating: int
+    comment: str | None
+    created_at: datetime
+
+
+class PGReviewListResponse(BaseModel):
+    reviews: list[PGReviewItem]
+    average_rating: float | None
+    total: int
 

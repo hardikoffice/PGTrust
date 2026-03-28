@@ -9,12 +9,17 @@ from app.api.deps import require_role
 from app.core.database import get_db
 from app.models.enums import GenderPreference, Role
 from app.models.pg_listing import PGListing
+from app.models.pg_review import PgReview
 from app.models.user import User
 from app.schemas.pg import (
     PGCreateRequest,
     PGCreateResponse,
     PGDetailResponse,
     PGImageUploadResponse,
+    PGRemoveResponse,
+    PGReviewCreate,
+    PGReviewItem,
+    PGReviewListResponse,
     PGSearchResponse,
     PGCard,
 )
@@ -31,6 +36,20 @@ _ALLOWED_IMAGE_TYPES = {
 _MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 router = APIRouter(prefix="/pg", tags=["pg"])
+
+
+def _author_display_name(user: User) -> str:
+    name = (user.full_name or "").strip()
+    if not name:
+        return "Member"
+    return name.split()[0]
+
+
+def _parse_pg_uuid(pg_id: str) -> uuid.UUID:
+    try:
+        return uuid.UUID(pg_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid PG id")
 
 
 @router.post("/create", response_model=PGCreateResponse, status_code=status.HTTP_201_CREATED)
@@ -162,14 +181,125 @@ def search_pgs(
     return PGSearchResponse(page=page, total_results=int(total), data=cards)
 
 
+@router.get("/{pg_id}/reviews/me", response_model=PGReviewItem | None)
+def get_my_pg_review(
+    pg_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.TENANT)),
+):
+    """Current tenant’s review for this PG, if any."""
+    uid = _parse_pg_uuid(pg_id)
+    pg = db.get(PGListing, uid)
+    if not pg or not pg.active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PG not found")
+
+    rev = db.execute(
+        select(PgReview).where(PgReview.pg_id == uid, PgReview.author_id == user.id)
+    ).scalar_one_or_none()
+    if not rev:
+        return None
+
+    author = db.get(User, user.id)
+    assert author is not None
+    return PGReviewItem(
+        id=str(rev.id),
+        author_display_name=_author_display_name(author),
+        rating=rev.rating,
+        comment=rev.comment,
+        created_at=rev.created_at,
+    )
+
+
+@router.get("/{pg_id}/reviews", response_model=PGReviewListResponse)
+def list_pg_reviews(pg_id: str, db: Session = Depends(get_db)):
+    """Public: reviews left by tenants for this PG."""
+    uid = _parse_pg_uuid(pg_id)
+    pg = db.get(PGListing, uid)
+    if not pg or not pg.active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PG not found")
+
+    rows = db.execute(
+        select(PgReview, User)
+        .join(User, PgReview.author_id == User.id)
+        .where(PgReview.pg_id == uid)
+        .order_by(PgReview.created_at.desc())
+    ).all()
+
+    items: list[PGReviewItem] = []
+    for rev, author in rows:
+        items.append(
+            PGReviewItem(
+                id=str(rev.id),
+                author_display_name=_author_display_name(author),
+                rating=rev.rating,
+                comment=rev.comment,
+                created_at=rev.created_at,
+            )
+        )
+
+    avg = db.execute(select(func.avg(PgReview.rating)).where(PgReview.pg_id == uid)).scalar_one()
+    avg_f = float(avg) if avg is not None else None
+
+    return PGReviewListResponse(
+        reviews=items,
+        average_rating=round(avg_f, 2) if avg_f is not None else None,
+        total=len(items),
+    )
+
+
+@router.post("/{pg_id}/reviews", response_model=PGReviewItem)
+def upsert_pg_review(
+    pg_id: str,
+    body: PGReviewCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.TENANT)),
+):
+    """Tenants can post or update their review for a PG (one per user per listing)."""
+    uid = _parse_pg_uuid(pg_id)
+    pg = db.get(PGListing, uid)
+    if not pg or not pg.active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PG not found")
+    if pg.owner_id == user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You cannot review your own listing",
+        )
+
+    existing = db.execute(
+        select(PgReview).where(PgReview.pg_id == uid, PgReview.author_id == user.id)
+    ).scalar_one_or_none()
+
+    if existing:
+        existing.rating = body.rating
+        existing.comment = body.comment
+        db.commit()
+        db.refresh(existing)
+        rev = existing
+    else:
+        rev = PgReview(
+            pg_id=uid,
+            author_id=user.id,
+            rating=body.rating,
+            comment=body.comment,
+        )
+        db.add(rev)
+        db.commit()
+        db.refresh(rev)
+
+    author = db.get(User, user.id)
+    assert author is not None
+    return PGReviewItem(
+        id=str(rev.id),
+        author_display_name=_author_display_name(author),
+        rating=rev.rating,
+        comment=rev.comment,
+        created_at=rev.created_at,
+    )
+
+
 @router.get("/{pg_id}", response_model=PGDetailResponse)
 def get_pg(pg_id: str, db: Session = Depends(get_db)):
-    try:
-        import uuid
-
-        uid = uuid.UUID(pg_id)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid PG id")
+    uid = _parse_pg_uuid(pg_id)
 
     pg = db.get(PGListing, uid)
     if not pg or not pg.active:
@@ -188,4 +318,28 @@ def get_pg(pg_id: str, db: Session = Depends(get_db)):
         gender_preference=pg.gender_preference.value if pg.gender_preference else None,
         active=pg.active,
     )
+
+
+@router.delete("/{pg_id}", response_model=PGRemoveResponse)
+def remove_pg(
+    pg_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.OWNER)),
+):
+    """Soft-delete a listing (sets active=false). Hidden from search; owner still sees it in /mine."""
+    try:
+        uid = uuid.UUID(pg_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid PG id")
+
+    pg = db.get(PGListing, uid)
+    if not pg or pg.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PG not found")
+
+    if not pg.active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Listing is already removed")
+
+    pg.active = False
+    db.commit()
+    return PGRemoveResponse(message="Listing removed. It no longer appears in search.")
 

@@ -1,19 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, setToken } from "@/lib/api";
+import { cn } from "@/lib/cn";
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"TENANT" | "OWNER">("TENANT");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +26,7 @@ export default function SignupPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold text-zinc-900">Create account</h1>
           <p className="text-sm text-zinc-600">
-            Sign up, then choose your role (Tenant or Owner).
+            Sign up and get started instantly.
           </p>
         </div>
 
@@ -34,16 +37,24 @@ export default function SignupPage() {
             setErr(null);
             setLoading(true);
             try {
-              await apiFetch("/auth/signup", {
+              const res = await apiFetch<{ access_token: string }>("/auth/signup", {
                 method: "POST",
                 body: JSON.stringify({
                   email,
                   password,
                   full_name: fullName,
                   phone_number: phoneNumber || null,
+                  role,
                 }),
               });
-              router.push("/login");
+              
+              // Auto-login: set the token
+              setToken(res.access_token);
+              
+              // Redirect to profile setup
+              const next = searchParams.get("next") || "/profile-setup";
+              router.push(next);
+              router.refresh();
             } catch (e) {
               setErr(e instanceof Error ? e.message : "Signup failed");
             } finally {
@@ -89,12 +100,31 @@ export default function SignupPage() {
 
         <div className="text-sm text-zinc-600">
           Already have an account?{" "}
-          <Link className="font-medium text-zinc-900 underline" href="/login">
+          <Link
+            className="font-medium text-zinc-900 underline"
+            href={`/login?next=${encodeURIComponent(searchParams.get("next") || "/")}`}
+          >
             Login
           </Link>
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-50">
+          <main className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
+            <p className="text-sm text-zinc-500">Loading…</p>
+          </main>
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   );
 }
 

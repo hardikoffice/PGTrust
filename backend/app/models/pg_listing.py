@@ -31,4 +31,5 @@ class PGListing(Base):
 
     owner = relationship("Owner", back_populates="pg_listings")
     requests = relationship("Request", back_populates="pg")
+    reviews = relationship("PgReview", back_populates="pg")
 

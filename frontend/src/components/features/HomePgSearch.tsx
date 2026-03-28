@@ -187,9 +187,9 @@ export function HomePgSearch() {
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  <Link href="/signup">
+                  <Link href={`/pg/${pg.id}`}>
                     <Button variant="secondary" type="button">
-                      Sign up to request
+                      View Details
                     </Button>
                   </Link>
                 </div>

@@ -155,8 +155,8 @@ export default function PublicSearchPage() {
                 </div>
               </div>
               <div className="flex shrink-0 gap-2">
-                <Link href="/login">
-                  <Button variant="secondary">Login to request</Button>
+                <Link href={`/pg/${pg.id}`}>
+                  <Button variant="secondary">View Details</Button>
                 </Link>
               </div>
             </div>
