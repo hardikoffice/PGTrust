@@ -28,10 +28,11 @@ export default function TenantDashboardPage() {
 
 function TenantDashboardInner() {
   const { profile, refresh } = useAuth();
-  const [currentPg, setCurrentPg] = useState<{ id: string; name: string; location: string; rent: number; status: string; request_id: string; is_moving_out: boolean } | null>(null);
+  const [currentPg, setCurrentPg] = useState<{ id: string; name: string; location: string; rent: number; status: string; request_id: string; is_moving_out: boolean; move_in_image?: string | null; move_out_image?: string | null; move_in_image_verified?: boolean; move_out_image_verified?: boolean } | null>(null);
   const [rentStatus, setRentStatus] = useState<RentStatus | null>(null);
   const [loadingPg, setLoadingPg] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
 
   async function loadRentStatus() {
     try {
@@ -42,20 +43,52 @@ function TenantDashboardInner() {
     }
   }
 
-  useEffect(() => {
-    async function loadPg() {
-      try {
-        const res = await apiFetch<{ pg: any }>("/tenant/current-pg", { auth: true });
-        setCurrentPg(res.pg);
-      } catch (e) {
-        console.error("Failed to load current PG", e);
-      } finally {
-        setLoadingPg(false);
-      }
+  async function loadPg() {
+    try {
+      const res = await apiFetch<{ pg: any }>("/tenant/current-pg", { auth: true });
+      setCurrentPg(res.pg);
+    } catch (e) {
+      console.error("Failed to load current PG", e);
+    } finally {
+      setLoadingPg(false);
     }
+  }
+
+  useEffect(() => {
     loadPg();
     loadRentStatus();
   }, []);
+
+  async function handleImageUpload(type: "move_in" | "move_out") {
+    if (!currentPg) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      setUploading(type);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const endpoint = type === "move_in" ? "upload-move-in-image" : "upload-move-out-image";
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/${currentPg.request_id}/${endpoint}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          body: fd,
+        }).then(async r => {
+          if (!r.ok) throw new Error((await r.json()).detail || "Upload failed");
+        });
+        await loadPg();
+        alert(`${type === "move_in" ? "Move-in" : "Move-out"} image uploaded successfully!`);
+      } catch (e) {
+        alert(e instanceof Error ? e.message : "Upload failed");
+      } finally {
+        setUploading(null);
+      }
+    };
+    input.click();
+  }
 
   async function handlePay() {
     setPaying(true);
@@ -149,6 +182,71 @@ function TenantDashboardInner() {
                       Move-Out Pending Approval
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Property Images Card */}
+              <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm sm:col-span-2">
+                <div className="mb-6">
+                  <div className="text-xs font-bold uppercase tracking-widest text-zinc-500">Property Photos</div>
+                  <h2 className="mt-1 font-display text-lg font-bold text-zinc-900">Move-In & Move-Out Images</h2>
+                  <p className="mt-1 text-xs text-zinc-500">Upload property photos for owner verification & AI damage assessment.</p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Move-In */}
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-xs font-bold uppercase tracking-wider text-zinc-600">📸 Move-In Photo</div>
+                      {currentPg.move_in_image && (
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${currentPg.move_in_image_verified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {currentPg.move_in_image_verified ? '✓ Verified' : '⏳ Pending'}
+                        </span>
+                      )}
+                    </div>
+                    {currentPg.move_in_image ? (
+                      <div className="relative rounded-xl overflow-hidden border border-zinc-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={currentPg.move_in_image} alt="Move-in" className="w-full h-36 object-cover" />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        disabled={uploading === 'move_in'}
+                        onClick={() => handleImageUpload('move_in')}
+                      >
+                        {uploading === 'move_in' ? 'Uploading...' : 'Upload Move-In Photo'}
+                      </Button>
+                    )}
+                  </div>
+                  {/* Move-Out */}
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-xs font-bold uppercase tracking-wider text-zinc-600">📸 Move-Out Photo</div>
+                      {currentPg.move_out_image && (
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${currentPg.move_out_image_verified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {currentPg.move_out_image_verified ? '✓ Verified' : '⏳ Pending'}
+                        </span>
+                      )}
+                    </div>
+                    {currentPg.move_out_image ? (
+                      <div className="relative rounded-xl overflow-hidden border border-zinc-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={currentPg.move_out_image} alt="Move-out" className="w-full h-36 object-cover" />
+                      </div>
+                    ) : currentPg.is_moving_out ? (
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        disabled={uploading === 'move_out'}
+                        onClick={() => handleImageUpload('move_out')}
+                      >
+                        {uploading === 'move_out' ? 'Uploading...' : 'Upload Move-Out Photo'}
+                      </Button>
+                    ) : (
+                      <div className="text-xs text-zinc-400 text-center py-4">Available after requesting move-out</div>
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +23,12 @@ class Request(Base):
     move_in_date: Mapped[date] = mapped_column(Date, nullable=False)
     move_out_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     is_moving_out: Mapped[bool] = mapped_column(default=False)
+
+    # Move-in / move-out images uploaded by tenant
+    move_in_image: Mapped[str | None] = mapped_column(String, nullable=True)
+    move_out_image: Mapped[str | None] = mapped_column(String, nullable=True)
+    move_in_image_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    move_out_image_verified: Mapped[bool] = mapped_column(Boolean, default=False)
 
     tenant = relationship("Tenant", back_populates="requests")
     pg = relationship("PGListing", back_populates="requests")

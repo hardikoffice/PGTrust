@@ -213,6 +213,10 @@ def get_current_pg(
             "status": r.status.value,
             "request_id": str(r.id),
             "is_moving_out": r.is_moving_out,
+            "move_in_image": r.move_in_image,
+            "move_out_image": r.move_out_image,
+            "move_in_image_verified": r.move_in_image_verified,
+            "move_out_image_verified": r.move_out_image_verified,
         }
     }
 

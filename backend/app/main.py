@@ -66,7 +66,7 @@ def _run_db_migrations() -> None:
 def create_app() -> FastAPI:
     app = FastAPI(title="PG Trust API", version="0.1.0")
 
-    origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    origins = [o.strip().rstrip('/') for o in settings.cors_origins.split(",") if o.strip()]
     # In development, your Next.js dev server might be opened via `localhost` or your LAN IP.
     # Using "*" prevents CORS preflight failures during local testing.
     if settings.environment == "development":

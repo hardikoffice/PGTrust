@@ -17,7 +17,8 @@ export function resolveMediaUrl(path: string | null | undefined): string {
   if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const p = path.startsWith("/") ? path : `/${path}`;
-  return `${apiOrigin()}${p}`;
+  const origin = apiOrigin().replace(/\/$/, "");
+  return `${origin}${p}`;
 }
 
 export async function uploadPgImage(file: File): Promise<string> {
@@ -74,7 +75,8 @@ export async function apiFetch<T>(
     return "";
   };
 
-  const url = `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+  const safeBaseUrl = API_BASE_URL.replace(/\/$/, "");
+  const url = `${safeBaseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
   const headers = new Headers(opts.headers);
   if (!headers.has("Content-Type") && !(opts.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");

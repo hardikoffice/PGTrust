@@ -1,12 +1,18 @@
+import base64
+import json
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import google.generativeai as genai
+import httpx
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_role
+from app.core.config import settings
 from app.core.database import get_db
+from app.models.damage_report import DamageReport
 from app.models.enums import RequestStatus, Role, VerificationStatus
 from app.models.pg_listing import PGListing
 from app.models.request import Request
@@ -79,6 +85,10 @@ def my_requests(
                 status=r.status.value,
                 move_in_date=r.move_in_date,
                 is_moving_out=r.is_moving_out,
+                move_in_image=r.move_in_image,
+                move_out_image=r.move_out_image,
+                move_in_image_verified=r.move_in_image_verified,
+                move_out_image_verified=r.move_out_image_verified,
             )
         )
     return RequestListResponse(data=items)
@@ -114,6 +124,10 @@ def incoming_requests(
                 status=r.status.value,
                 move_in_date=r.move_in_date,
                 is_moving_out=r.is_moving_out,
+                move_in_image=r.move_in_image,
+                move_out_image=r.move_out_image,
+                move_in_image_verified=r.move_in_image_verified,
+                move_out_image_verified=r.move_out_image_verified,
             )
         )
     return RequestListResponse(data=items)
@@ -215,6 +229,10 @@ def incoming_move_outs(
                 status=r.status.value,
                 move_in_date=r.move_in_date,
                 is_moving_out=r.is_moving_out,
+                move_in_image=r.move_in_image,
+                move_out_image=r.move_out_image,
+                move_in_image_verified=r.move_in_image_verified,
+                move_out_image_verified=r.move_out_image_verified,
             )
         )
     return RequestListResponse(data=items)
@@ -303,4 +321,200 @@ def complete_move_out(
 
     db.commit()
     return SimpleMessageResponse(message="Move-out completed and feedback saved. Request is now COMPLETED.")
+
+
+async def _upload_to_imgbb(file_bytes: bytes) -> str:
+    """Upload image bytes to ImgBB and return the URL."""
+    if not settings.imgbb_api_key:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="ImgBB API key not configured")
+    b64 = base64.b64encode(file_bytes).decode("utf-8")
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            "https://api.imgbb.com/1/upload",
+            data={"key": settings.imgbb_api_key, "image": b64},
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Image upload failed")
+        return resp.json()["data"]["url"]
+
+
+@router.post("/{request_id}/upload-move-in-image", response_model=SimpleMessageResponse)
+async def upload_move_in_image(
+    request_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.TENANT)),
+):
+    """Tenant uploads a move-in property photo."""
+    try:
+        req_uuid = uuid.UUID(request_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request id")
+
+    req = db.get(Request, req_uuid)
+    if not req or req.tenant_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+    if req.status != RequestStatus.ACCEPTED:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Can only upload for accepted stays")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image too large (max 10MB)")
+
+    url = await _upload_to_imgbb(file_bytes)
+    req.move_in_image = url
+    req.move_in_image_verified = False
+    db.add(req)
+    db.commit()
+    return SimpleMessageResponse(message="Move-in image uploaded successfully.")
+
+
+@router.post("/{request_id}/upload-move-out-image", response_model=SimpleMessageResponse)
+async def upload_move_out_image(
+    request_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.TENANT)),
+):
+    """Tenant uploads a move-out property photo."""
+    try:
+        req_uuid = uuid.UUID(request_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request id")
+
+    req = db.get(Request, req_uuid)
+    if not req or req.tenant_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+    if req.status != RequestStatus.ACCEPTED or not req.is_moving_out:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Can only upload during an active move-out")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image too large (max 10MB)")
+
+    url = await _upload_to_imgbb(file_bytes)
+    req.move_out_image = url
+    req.move_out_image_verified = False
+    db.add(req)
+    db.commit()
+    return SimpleMessageResponse(message="Move-out image uploaded successfully.")
+
+
+_DAMAGE_PROMPT = (
+    "You are an expert property inspector. "
+    "Image 1 is the Move-In condition. Image 2 is the Move-Out condition. "
+    "Compare them and identify new damages, ignoring normal wear and tear. "
+    "Provide a score from 0 to 100 (100 = perfect condition). "
+    'Respond strictly in JSON format with keys: "score" (number), '
+    '"damages" (array of strings), and "reasoning" (string).'
+)
+
+
+@router.post("/{request_id}/verify-image", response_model=SimpleMessageResponse)
+def verify_image(
+    request_id: str,
+    image_type: str = Form(...),  # "move_in" or "move_out"
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.OWNER)),
+):
+    """Owner verifies a move-in or move-out image. Auto-runs damage assessment when both verified."""
+    if image_type not in ("move_in", "move_out"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="image_type must be 'move_in' or 'move_out'")
+
+    try:
+        req_uuid = uuid.UUID(request_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request id")
+
+    req = db.get(Request, req_uuid)
+    if not req:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+
+    pg = db.get(PGListing, req.pg_id)
+    if not pg or pg.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    if image_type == "move_in":
+        if not req.move_in_image:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No move-in image uploaded")
+        req.move_in_image_verified = True
+    else:
+        if not req.move_out_image:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No move-out image uploaded")
+        req.move_out_image_verified = True
+
+    db.add(req)
+    db.commit()
+    db.refresh(req)
+
+    # Auto-trigger AI damage assessment when BOTH images verified
+    if req.move_in_image_verified and req.move_out_image_verified and settings.gemini_api_key:
+        try:
+            _run_damage_assessment(req, user, db)
+        except Exception as e:
+            # Don't fail the verify — just log
+            print(f"Auto damage assessment failed: {e}")
+            return SimpleMessageResponse(message=f"Image verified. AI assessment failed: {str(e)}")
+        return SimpleMessageResponse(message="Image verified. AI damage assessment completed automatically!")
+
+    return SimpleMessageResponse(message="Image verified successfully.")
+
+
+def _run_damage_assessment(req: Request, owner: User, db: Session) -> None:
+    """Run Gemini AI damage assessment on the two verified images."""
+    import requests as http_requests
+
+    # Download images
+    move_in_resp = http_requests.get(req.move_in_image, timeout=15)
+    move_out_resp = http_requests.get(req.move_out_image, timeout=15)
+
+    if move_in_resp.status_code != 200 or move_out_resp.status_code != 200:
+        raise Exception("Failed to download images")
+
+    genai.configure(api_key=settings.gemini_api_key)
+    model = genai.GenerativeModel(
+        "gemini-2.5-flash",
+        generation_config=genai.GenerationConfig(response_mime_type="application/json"),
+    )
+
+    response = model.generate_content([
+        _DAMAGE_PROMPT,
+        {"mime_type": "image/jpeg", "data": move_in_resp.content},
+        {"mime_type": "image/jpeg", "data": move_out_resp.content},
+    ])
+
+    result = json.loads(response.text)
+    score = int(result.get("score", 0))
+    damages = result.get("damages", [])
+    reasoning = result.get("reasoning", "")
+
+    # Calculate points
+    if score >= 90:
+        points = 15
+    elif score >= 70:
+        points = 5
+    elif score >= 50:
+        points = 0
+    elif score >= 30:
+        points = -10
+    else:
+        points = -25
+
+    # Update trust score
+    tenant = db.get(Tenant, req.tenant_id)
+    if tenant:
+        tenant.trust_score = max(0, tenant.trust_score + points)
+        db.add(tenant)
+
+    # Save report
+    report = DamageReport(
+        tenant_id=req.tenant_id,
+        owner_id=owner.id,
+        score=score,
+        damages=damages,
+        reasoning=reasoning,
+        points_applied=points,
+    )
+    db.add(report)
+    db.commit()
 

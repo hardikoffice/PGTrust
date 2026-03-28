@@ -39,6 +39,11 @@ class RequestListItem(BaseModel):
     tenant_trust_score: int | None = None
     status: str
     move_in_date: date
+    is_moving_out: bool = False
+    move_in_image: str | None = None
+    move_out_image: str | None = None
+    move_in_image_verified: bool = False
+    move_out_image_verified: bool = False
 
 
 class RequestListResponse(BaseModel):
