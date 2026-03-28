@@ -51,8 +51,8 @@ function SignupForm() {
               // Auto-login: set the token
               setToken(res.access_token);
               
-              // Redirect to profile setup
-              const defaultNext = role === "OWNER" ? "/owner/dashboard" : "/profile-setup";
+              // Redirect to dashboard immediately instead of profile-setup
+              const defaultNext = role === "OWNER" ? "/owner/dashboard" : "/tenant/dashboard";
               const next = searchParams.get("next") || defaultNext;
               router.push(next);
               router.refresh();
