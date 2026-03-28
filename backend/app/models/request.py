@@ -22,6 +22,7 @@ class Request(Base):
 
     move_in_date: Mapped[date] = mapped_column(Date, nullable=False)
     move_out_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    is_moving_out: Mapped[bool] = mapped_column(default=False)
 
     tenant = relationship("Tenant", back_populates="requests")
     pg = relationship("PGListing", back_populates="requests")

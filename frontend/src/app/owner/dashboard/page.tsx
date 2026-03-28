@@ -58,6 +58,9 @@ function Inner() {
               <Link href="/owner/requests">
                 <Button className="w-full shadow-lg shadow-yellow-400/20">Review requests</Button>
               </Link>
+              <Link href="/owner/move-outs">
+                <Button variant="secondary" className="w-full">Move-Out Approvals</Button>
+              </Link>
             </div>
           </div>
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-400/5 group-hover:bg-yellow-400/10 transition-colors" />

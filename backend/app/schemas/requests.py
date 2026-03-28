@@ -18,6 +18,14 @@ class UpdateRequestStatusBody(BaseModel):
     status: str = Field(pattern="^(ACCEPTED|REJECTED|COMPLETED)$")
 
 
+class MoveOutFeedbackBody(BaseModel):
+    payment_rating: int = Field(ge=0, le=100)
+    behavior_rating: int = Field(ge=0, le=100)
+    property_rating: int = Field(ge=0, le=100)
+    stability_rating: int = Field(ge=0, le=100)
+    comments: str | None = Field(default=None, max_length=2000)
+
+
 class SimpleMessageResponse(BaseModel):
     message: str
 

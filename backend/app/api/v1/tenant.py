@@ -207,6 +207,8 @@ def get_current_pg(
             "location": pg.location,
             "rent": float(pg.rent),
             "status": r.status.value,
+            "request_id": str(r.id),
+            "is_moving_out": r.is_moving_out,
         }
     }
 

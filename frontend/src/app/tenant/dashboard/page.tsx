@@ -28,7 +28,7 @@ export default function TenantDashboardPage() {
 
 function TenantDashboardInner() {
   const { profile, refresh } = useAuth();
-  const [currentPg, setCurrentPg] = useState<{ id: string; name: string; location: string; rent: number; status: string } | null>(null);
+  const [currentPg, setCurrentPg] = useState<{ id: string; name: string; location: string; rent: number; status: string; request_id: string; is_moving_out: boolean } | null>(null);
   const [rentStatus, setRentStatus] = useState<RentStatus | null>(null);
   const [loadingPg, setLoadingPg] = useState(true);
   const [paying, setPaying] = useState(false);
@@ -67,6 +67,17 @@ function TenantDashboardInner() {
       alert(e instanceof Error ? e.message : "Failed to mark as paid");
     } finally {
       setPaying(false);
+    }
+  }
+
+  async function handleMoveOut() {
+    if (!currentPg || !confirm("Are you sure you want to request a move-out? Your owner will need to approve and review your stay.")) return;
+    try {
+      await apiFetch(`/requests/${currentPg.request_id}/move-out`, { method: "POST", auth: true });
+      setCurrentPg(prev => prev ? { ...prev, is_moving_out: true } : null);
+      alert("Move-out requested. Waiting for owner approval.");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to request move-out");
     }
   }
 
@@ -124,10 +135,20 @@ function TenantDashboardInner() {
                   </div>
                 </div>
 
-                <div className="mt-8">
-                  <Link href={`/pg?id=${currentPg.id}`}>
+                <div className="mt-8 flex gap-3">
+                  <Link href={`/pg?id=${currentPg.id}`} className="flex-1">
                     <Button variant="secondary" className="w-full">View Details</Button>
                   </Link>
+                  {currentPg.status === "ACCEPTED" && !currentPg.is_moving_out && (
+                    <Button variant="danger" className="flex-1" onClick={handleMoveOut}>
+                      Request Move-Out
+                    </Button>
+                  )}
+                  {currentPg.is_moving_out && currentPg.status === "ACCEPTED" && (
+                    <div className="flex-1 flex items-center justify-center rounded-lg bg-orange-50 text-xs font-semibold text-orange-700 text-center px-4 py-2 border border-orange-200">
+                      Move-Out Pending Approval
+                    </div>
+                  )}
                 </div>
               </div>
 

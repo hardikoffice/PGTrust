@@ -25,6 +25,13 @@ def _ensure_sqlite_pg_rating_column() -> None:
         if "rent_due_day" not in col_names:
             conn.execute(text("ALTER TABLE pg_listings ADD COLUMN rent_due_day INTEGER"))
             conn.commit()
+        
+        # Check requests table for is_moving_out
+        rows_req = conn.execute(text("PRAGMA table_info(requests);")).fetchall()
+        col_names_req = {r[1] for r in rows_req}
+        if "is_moving_out" not in col_names_req:
+            conn.execute(text("ALTER TABLE requests ADD COLUMN is_moving_out BOOLEAN NOT NULL DEFAULT 0"))
+            conn.commit()
 
 
 def create_app() -> FastAPI:
