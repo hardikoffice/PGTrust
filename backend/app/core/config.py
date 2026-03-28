@@ -2,8 +2,16 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+import os
+from pathlib import Path
+
+_BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(_BASE_DIR, ".env"),
+        extra="ignore"
+    )
 
     environment: str = Field(default="development", alias="ENVIRONMENT")
     port: int = Field(default=8000, alias="PORT")
