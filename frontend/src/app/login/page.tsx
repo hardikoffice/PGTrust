@@ -47,7 +47,8 @@ function LoginForm() {
                 body: JSON.stringify({ email, password }),
               });
               setToken(res.access_token);
-              const next = safeNextPath(searchParams.get("next"));
+              const defaultNext = res.role === "OWNER" ? "/owner/dashboard" : "/";
+              const next = searchParams.get("next") ? safeNextPath(searchParams.get("next")) : defaultNext;
               router.push(next);
               router.refresh();
             } catch (e) {

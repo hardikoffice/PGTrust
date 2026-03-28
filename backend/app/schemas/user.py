@@ -33,6 +33,10 @@ class UserTenantData(BaseModel):
     verification_status: str
     trust_score: int
 
+class UserOwnerData(BaseModel):
+    business_name: str | None
+    verified_owner: bool
+
 class UserProfileResponse(BaseModel):
     id: str
     email: str
@@ -40,3 +44,4 @@ class UserProfileResponse(BaseModel):
     phone_number: str | None
     role: str
     tenant_data: UserTenantData | None = None
+    owner_data: UserOwnerData | None = None

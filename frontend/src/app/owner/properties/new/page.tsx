@@ -27,6 +27,7 @@ function Inner() {
   const [gender, setGender] = useState<"ANY" | "MALE" | "FEMALE">("ANY");
   const [description, setDescription] = useState("");
   const [rating, setRating] = useState("4.5");
+  const [rentDueDay, setRentDueDay] = useState("5");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -57,6 +58,13 @@ function Inner() {
             onChange={(e) => setRating(e.target.value)}
             inputMode="decimal"
             placeholder="4.5"
+          />
+          <Input
+            label="Monthly Rent Due Day (1-28)"
+            value={rentDueDay}
+            onChange={(e) => setRentDueDay(e.target.value)}
+            inputMode="numeric"
+            placeholder="5"
           />
           <label className="grid gap-1 text-sm">
             <span className="text-zinc-700">Gender preference</span>
@@ -175,6 +183,7 @@ function Inner() {
                       .filter(Boolean),
                     gender_preference: gender,
                     description: description || null,
+                    rent_due_day: rentDueDay.trim() === "" ? null : Number(rentDueDay),
                     images: imageUrls,
                   }),
                 });

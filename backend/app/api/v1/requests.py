@@ -89,8 +89,10 @@ def incoming_requests(
 ):
     rows = (
         db.execute(
-            select(Request, PGListing)
+            select(Request, PGListing, User, Tenant)
             .join(PGListing, PGListing.id == Request.pg_id)
+            .join(User, User.id == Request.tenant_id)
+            .join(Tenant, Tenant.user_id == Request.tenant_id)
             .where(PGListing.owner_id == user.id)
             .order_by(Request.request_date.desc())
         )
@@ -98,12 +100,15 @@ def incoming_requests(
     )
 
     items: list[RequestListItem] = []
-    for r, pg in rows:
+    for r, pg, u, t in rows:
         items.append(
             RequestListItem(
                 id=str(r.id),
                 pg_id=str(pg.id),
                 pg_name=pg.name,
+                tenant_id=str(u.id),
+                tenant_name=u.full_name,
+                tenant_trust_score=t.trust_score,
                 status=r.status.value,
                 move_in_date=r.move_in_date,
             )

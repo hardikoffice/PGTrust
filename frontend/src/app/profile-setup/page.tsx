@@ -24,10 +24,14 @@ export default function ProfileSetupPage() {
 
   useEffect(() => {
     if (user) {
+      if (user.role === "OWNER") {
+        router.push("/owner/dashboard");
+        return;
+      }
       setFullName(user.full_name || "");
       setPhone(user.phone_number || "");
     }
-  }, [user]);
+  }, [user, router]);
 
   const calculateAge = (dateString: string) => {
     if (!dateString) return null;
@@ -53,12 +57,12 @@ export default function ProfileSetupPage() {
         method: "PATCH",
         auth: true,
         body: JSON.stringify({
-          full_name: fullName,
-          phone_number: phone,
-          date_of_birth: dob,
-          gender,
-          marital_status: maritalStatus,
-          income_range: incomeRange,
+          full_name: fullName || null,
+          phone_number: phone || null,
+          date_of_birth: dob || null,
+          gender: gender || null,
+          marital_status: maritalStatus || null,
+          income_range: incomeRange || null,
         }),
       });
       

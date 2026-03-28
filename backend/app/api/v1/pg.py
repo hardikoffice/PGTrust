@@ -68,6 +68,7 @@ def create_pg(
         images=body.images,
         description=body.description,
         gender_preference=GenderPreference(body.gender_preference) if body.gender_preference else None,
+        rent_due_day=body.rent_due_day,
         active=True,
     )
     db.add(pg)
@@ -122,6 +123,7 @@ def my_pgs(db: Session = Depends(get_db), user: User = Depends(require_role(Role
             description=pg.description,
             gender_preference=pg.gender_preference.value if pg.gender_preference else None,
             active=pg.active,
+            rent_due_day=int(pg.rent_due_day) if pg.rent_due_day else None,
         )
         for pg in rows
     ]
@@ -317,6 +319,7 @@ def get_pg(pg_id: str, db: Session = Depends(get_db)):
         description=pg.description,
         gender_preference=pg.gender_preference.value if pg.gender_preference else None,
         active=pg.active,
+        rent_due_day=int(pg.rent_due_day) if pg.rent_due_day else None,
     )
 
 

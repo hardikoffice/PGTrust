@@ -25,3 +25,8 @@ class RequestStatus(str, enum.Enum):
     REJECTED = "REJECTED"
     COMPLETED = "COMPLETED"
 
+class RentPaymentStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    PAID = "PAID"
+    VERIFIED = "VERIFIED"
+    OVERDUE = "OVERDUE"

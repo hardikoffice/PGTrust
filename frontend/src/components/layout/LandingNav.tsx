@@ -11,7 +11,7 @@ const linkClass =
 
 export function LandingNav() {
   const router = useRouter();
-  const { profile, loading } = useAuth();
+  const { profile, loading, logout } = useAuth();
 
   const authed = !!profile;
   const unassigned = profile?.role === "UNASSIGNED";
@@ -35,20 +35,20 @@ export function LandingNav() {
           <Link href="/search" className={linkClass}>
             PG Search
           </Link>
-          <Link
-            href={
-              authed
-                ? owner
-                  ? "/owner/properties"
-                  : tenant
-                    ? "/tenant/dashboard"
+          {!tenant && (
+            <Link
+              href={
+                authed
+                  ? owner
+                    ? "/owner/properties"
                     : "/role"
-                : "/signup?next=/owner/properties"
-            }
-            className={linkClass}
-          >
-            List PG
-          </Link>
+                  : "/signup?next=/owner/properties"
+              }
+              className={linkClass}
+            >
+              List PG
+            </Link>
+          )}
           <Link
             href={
               authed
@@ -63,6 +63,14 @@ export function LandingNav() {
           >
             My Trust Score
           </Link>
+          {authed && (
+            <Link
+              href={tenant ? "/tenant/profile" : "/owner/profile"}
+              className={linkClass}
+            >
+              Profile
+            </Link>
+          )}
         </nav>
 
         <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
@@ -74,7 +82,7 @@ export function LandingNav() {
                 type="button"
                 className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 onClick={() => {
-                  setToken(null);
+                  logout();
                   router.push("/");
                   router.refresh();
                 }}

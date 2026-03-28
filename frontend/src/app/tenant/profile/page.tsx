@@ -36,148 +36,183 @@ function TenantProfileInner() {
   }, [status]);
 
   return (
-    <div className="grid gap-6">
-      <div>
-        <div className="text-2xl font-semibold text-zinc-900">Profile</div>
-        <div className="text-sm text-zinc-600">{hint}</div>
+    <div className="mx-auto max-w-4xl py-12 px-6">
+      <div className="mb-10">
+        <h1 className="font-display text-4xl font-extrabold tracking-tight text-zinc-900">
+          My Profile
+        </h1>
+        <p className="mt-2 text-lg text-zinc-600">{hint}</p>
       </div>
 
-      <div className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-4">
-        <div className="text-sm font-medium text-zinc-700">Personal details</div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <Input
-            label="Date of birth"
-            type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-          />
-          <Input
-            label="Address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Your permanent address"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button
-            disabled={loading}
-            onClick={async () => {
-              setErr(null);
-              setMsg(null);
-              setLoading(true);
-              try {
-                await apiFetch("/tenant/profile", {
-                  method: "PATCH",
-                  auth: true,
-                  body: JSON.stringify({
-                    date_of_birth: dob || null,
-                    address: address || null,
-                  }),
-                });
-                setMsg("Profile updated.");
-              } catch (e) {
-                setErr(e instanceof Error ? e.message : "Failed to update profile");
-              } finally {
-                setLoading(false);
-              }
-            }}
-          >
-            Save
-          </Button>
-          <Button variant="secondary" onClick={refresh}>
-            Refresh
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-medium text-zinc-700">
-              Identity verification
+      <div className="grid gap-8 lg:grid-cols-5">
+        <div className="lg:col-span-3 space-y-8">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
+            <h2 className="font-display mb-6 text-xl font-bold text-zinc-900">Personal Details</h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Input
+                label="Date of Birth"
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+              />
+              <Input
+                label="Current City/Address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. Bangalore, KA"
+              />
             </div>
-            <div className="text-sm text-zinc-600">
-              Status: <span className="font-medium text-zinc-900">{status}</span>
+            <div className="mt-8 flex gap-3">
+              <Button
+                disabled={loading}
+                className="shadow-lg shadow-yellow-400/20"
+                onClick={async () => {
+                  setErr(null);
+                  setMsg(null);
+                  setLoading(true);
+                  try {
+                    await apiFetch("/tenant/profile", {
+                      method: "PATCH",
+                      auth: true,
+                      body: JSON.stringify({
+                        date_of_birth: dob || null,
+                        address: address || null,
+                      }),
+                    });
+                    setMsg("Profile details updated successfully.");
+                  } catch (e) {
+                    setErr(e instanceof Error ? e.message : "Failed to update profile");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button variant="secondary" onClick={refresh}>
+                Refresh
+              </Button>
             </div>
           </div>
-          <div className="text-xs text-zinc-500">
-            {canRequest ? "Requests enabled" : "Requests locked"}
+
+          <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display text-xl font-bold text-zinc-900">
+                Identity Verification
+              </h2>
+              <div className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${canRequest ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                {canRequest ? "Verified" : "Action Required"}
+              </div>
+            </div>
+
+            <div className="mb-8 p-4 rounded-2xl bg-zinc-50 border border-zinc-100">
+              <p className="text-sm font-medium text-zinc-700 leading-relaxed">
+                Status: <span className="font-bold text-zinc-900">{status}</span>
+              </p>
+              <p className="mt-1 text-xs text-zinc-500">
+                {canRequest ? "You can now send booking requests to PG owners." : "You must be verified to start booking."}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-sm font-semibold text-zinc-700">Govt ID Proof (PNG/JPG)</span>
+                <input
+                  type="file"
+                  className="mt-2 block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
+                  accept="image/png,image/jpeg,application/pdf"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+              </label>
+
+              <div className="flex flex-col gap-3 pt-4">
+                <Button
+                  disabled={loading || !file}
+                  onClick={async () => {
+                    if (!file) return;
+                    setErr(null);
+                    setMsg(null);
+                    setLoading(true);
+                    try {
+                      const form = new FormData();
+                      form.append("file", file);
+                      form.append("document_type", "AADHAAR");
+                      await apiFetch("/tenant/verify", {
+                        method: "POST",
+                        auth: true,
+                        body: form,
+                        headers: {},
+                      });
+                      setMsg("Document uploaded. Our team is reviewing it.");
+                      await refresh();
+                    } catch (e) {
+                      setErr(e instanceof Error ? e.message : "Upload failed");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Upload for Review
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  disabled={loading}
+                  onClick={async () => {
+                    setErr(null);
+                    setMsg(null);
+                    setLoading(true);
+                    try {
+                      await apiFetch("/tenant/verify/mark-verified", { method: "POST", auth: true });
+                      setMsg("Verified successfully (Instant verification enabled).");
+                      await refresh();
+                    } catch (e) {
+                      setErr(e instanceof Error ? e.message : "Verification failed");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Mark Verified (Demo Only)
+                </Button>
+              </div>
+            </div>
           </div>
+
+          {msg && (
+            <div className="rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-700 border border-emerald-100">
+              ✓ {msg}
+            </div>
+          )}
+          {err && (
+            <div className="rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-700 border border-red-100">
+              ⚠️ {err}
+            </div>
+          )}
         </div>
 
-        <label className="grid gap-1 text-sm">
-          <span className="text-zinc-700">Govt ID (PNG/JPG/PDF, max 5MB)</span>
-          <input
-            type="file"
-            accept="image/png,image/jpeg,application/pdf"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-        </label>
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            disabled={loading || !file}
-            onClick={async () => {
-              if (!file) return;
-              setErr(null);
-              setMsg(null);
-              setLoading(true);
-              try {
-                const form = new FormData();
-                form.append("file", file);
-                form.append("document_type", "AADHAAR");
-                await apiFetch("/tenant/verify", {
-                  method: "POST",
-                  auth: true,
-                  body: form,
-                  headers: {},
-                });
-                setMsg("Document uploaded. Status set to PENDING.");
-                await refresh();
-              } catch (e) {
-                setErr(e instanceof Error ? e.message : "Upload failed");
-              } finally {
-                setLoading(false);
-              }
-            }}
-          >
-            Upload document
-          </Button>
-
-          <Button
-            variant="secondary"
-            disabled={loading}
-            onClick={async () => {
-              setErr(null);
-              setMsg(null);
-              setLoading(true);
-              try {
-                await apiFetch("/tenant/verify/mark-verified", { method: "POST", auth: true });
-                setMsg("Marked VERIFIED (local MVP helper).");
-                await refresh();
-              } catch (e) {
-                setErr(e instanceof Error ? e.message : "Failed");
-              } finally {
-                setLoading(false);
-              }
-            }}
-          >
-            Mark verified (dev)
-          </Button>
+        <div className="lg:col-span-2 space-y-8">
+          <div className="rounded-3xl bg-zinc-900 p-8 text-white shadow-xl">
+            <h3 className="font-display text-lg font-bold">Trust Badge</h3>
+            <p className="mt-2 text-sm text-zinc-400">
+              Higher trust scores unlock premium PG listings and lower security deposits.
+            </p>
+            <div className="mt-10 flex justify-center">
+              <div className="relative h-32 w-32">
+                <div className="absolute inset-0 rounded-full border-4 border-zinc-800" />
+                <div 
+                  className="absolute inset-0 rounded-full border-4 border-yellow-400" 
+                  style={{ clipPath: `inset(0 0 ${(100 - (profile?.tenant_data?.trust_score ?? 500) / 10)}% 0)` }}
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-display text-3xl font-black">{profile?.tenant_data?.trust_score ?? 500}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Score</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {msg ? (
-          <div className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-            {msg}
-          </div>
-        ) : null}
-        {err ? (
-          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {err}
-          </div>
-        ) : null}
       </div>
     </div>
   );
 }
-

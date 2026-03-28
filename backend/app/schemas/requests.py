@@ -26,6 +26,9 @@ class RequestListItem(BaseModel):
     id: str
     pg_id: str
     pg_name: str
+    tenant_id: str | None = None
+    tenant_name: str | None = None
+    tenant_trust_score: int | None = None
     status: str
     move_in_date: date
 

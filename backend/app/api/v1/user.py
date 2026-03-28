@@ -68,6 +68,13 @@ def profile(user: User = Depends(get_current_user)):
             trust_score=user.tenant.trust_score,
         )
 
+    owner_data = None
+    if user.role == Role.OWNER and user.owner:
+        owner_data = {
+            "business_name": user.owner.business_name,
+            "verified_owner": user.owner.verified_owner,
+        }
+
     return UserProfileResponse(
         id=str(user.id),
         email=user.email,
@@ -75,5 +82,5 @@ def profile(user: User = Depends(get_current_user)):
         phone_number=user.phone_number,
         role=user.role.value,
         tenant_data=tenant_data,
+        owner_data=owner_data,
     )
-

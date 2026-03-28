@@ -26,4 +26,3 @@ class Request(Base):
     tenant = relationship("Tenant", back_populates="requests")
     pg = relationship("PGListing", back_populates="requests")
     feedback = relationship("Feedback", back_populates="request", uselist=False)
-

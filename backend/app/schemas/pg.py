@@ -12,6 +12,7 @@ class PGCreateRequest(BaseModel):
     gender_preference: str | None = Field(default=None, pattern="^(MALE|FEMALE|ANY)$")
     description: str | None = None
     images: list[str] | None = Field(default=None, max_length=8)
+    rent_due_day: int | None = Field(default=None, ge=1, le=28)
 
 
 class PGCreateResponse(BaseModel):
@@ -53,6 +54,7 @@ class PGDetailResponse(BaseModel):
     description: str | None = None
     gender_preference: str | None = None
     active: bool
+    rent_due_day: int | None = None
 
 
 class PGRemoveResponse(BaseModel):

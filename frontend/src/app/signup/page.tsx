@@ -52,7 +52,8 @@ function SignupForm() {
               setToken(res.access_token);
               
               // Redirect to profile setup
-              const next = searchParams.get("next") || "/profile-setup";
+              const defaultNext = role === "OWNER" ? "/owner/dashboard" : "/profile-setup";
+              const next = searchParams.get("next") || defaultNext;
               router.push(next);
               router.refresh();
             } catch (e) {
@@ -88,6 +89,27 @@ function SignupForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-zinc-700">I am a</label>
+            <div className="flex gap-2">
+              {(["TENANT", "OWNER"] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={cn(
+                    "flex-1 rounded-xl border-2 py-3 text-sm font-bold transition-all",
+                    role === r
+                      ? "border-yellow-400 bg-yellow-400/5 text-zinc-900"
+                      : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300"
+                  )}
+                >
+                  {r.charAt(0) + r.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
+          </div>
           {err ? (
             <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
               {err}

@@ -16,6 +16,11 @@ export type Profile = {
     verification_status: "UNVERIFIED" | "PENDING" | "VERIFIED";
     trust_score: number;
   } | null;
+  owner_data?: {
+    business_name: string | null;
+    verified_owner: boolean;
+    phone?: string | null;
+  } | null;
 };
 
 export function useAuth() {

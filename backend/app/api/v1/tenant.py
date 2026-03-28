@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.models.enums import Role, VerificationStatus
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.schemas.user import TenantProfileUpdate
+from app.schemas.user import TenantProfileUpdate, UserProfileResponse, UserTenantData
 
 
 router = APIRouter(prefix="/tenant", tags=["tenant"])
@@ -86,4 +86,77 @@ def mark_verified(
     db.add(tenant)
     db.commit()
     return {"message": "Verification marked as VERIFIED."}
+
+
+@router.get("/{tenant_id}/profile", response_model=UserProfileResponse)
+def get_tenant_profile(
+    tenant_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.OWNER)),
+):
+    try:
+        tenant_uuid = uuid.UUID(tenant_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid tenant_id")
+
+    tenant_user = db.get(User, tenant_uuid)
+    if not tenant_user or tenant_user.role != Role.TENANT:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
+
+    tenant_info = db.get(Tenant, tenant_uuid)
+    tenant_data = None
+    if tenant_info:
+        tenant_data = UserTenantData(
+            verification_status=tenant_info.verification_status.value,
+            trust_score=tenant_info.trust_score,
+        )
+
+    return UserProfileResponse(
+        id=str(tenant_user.id),
+        email=tenant_user.email,
+        full_name=tenant_user.full_name,
+        phone_number=tenant_user.phone_number,
+        role=tenant_user.role.value,
+        tenant_data=tenant_data,
+    )
+
+
+@router.get("/current-pg")
+def get_current_pg(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(Role.TENANT)),
+):
+    from sqlalchemy import and_, select
+    from app.models.request import Request
+    from app.models.pg_listing import PGListing
+    from app.models.enums import RequestStatus
+
+    row = (
+        db.execute(
+            select(Request, PGListing)
+            .join(PGListing, PGListing.id == Request.pg_id)
+            .where(
+                and_(
+                    Request.tenant_id == user.id,
+                    Request.status.in_([RequestStatus.ACCEPTED, RequestStatus.COMPLETED]),
+                )
+            )
+            .order_by(Request.decision_date.desc())
+        )
+        .first()
+    )
+
+    if not row:
+        return {"pg": None}
+
+    r, pg = row
+    return {
+        "pg": {
+            "id": str(pg.id),
+            "name": pg.name,
+            "location": pg.location,
+            "rent": pg.rent,
+            "status": r.status.value,
+        }
+    }
 

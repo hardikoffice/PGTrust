@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { RequireRole } from "@/components/layout/RequireRole";
@@ -10,6 +11,9 @@ type Item = {
   id: string;
   pg_id: string;
   pg_name: string;
+  tenant_id: string;
+  tenant_name: string;
+  tenant_trust_score: number;
   status: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED";
   move_in_date: string;
 };
@@ -97,7 +101,12 @@ function Inner() {
                 <div className="truncate text-lg font-semibold text-zinc-900">
                   {r.pg_name}
                 </div>
-                <div className="text-sm text-zinc-600">Move-in: {r.move_in_date}</div>
+                <div className="flex items-center gap-2 text-sm text-zinc-600">
+                  <span>{r.tenant_name}</span>
+                  <span className="h-1 w-1 rounded-full bg-zinc-300" />
+                  <span className="font-medium text-emerald-600">Score: {r.tenant_trust_score}</span>
+                </div>
+                <div className="text-sm text-zinc-500 mt-1">Move-in: {r.move_in_date}</div>
               </div>
               <div className="text-xs font-medium text-zinc-700">{r.status}</div>
             </div>
@@ -114,6 +123,22 @@ function Inner() {
             <div>
               <div className="text-lg font-semibold text-zinc-900">{selected.pg_name}</div>
               <div className="text-sm text-zinc-600">Status: {selected.status}</div>
+            </div>
+
+            <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
+              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Tenant Information</div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-zinc-900">{selected.tenant_name}</div>
+                  <div className="text-sm text-emerald-600 font-semibold">Trust Score: {selected.tenant_trust_score}</div>
+                </div>
+                <Link 
+                  href={`/owner/tenant/${selected.tenant_id}`}
+                  className="text-xs font-bold text-yellow-600 hover:text-yellow-700 underline underline-offset-4"
+                >
+                  View Profile
+                </Link>
+              </div>
             </div>
 
             {selected.status === "PENDING" ? (
