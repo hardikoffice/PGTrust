@@ -109,7 +109,7 @@ function Inner({ pgId }: { pgId: string }) {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link href={`/owner/tenant/${r.tenant_id}`}>
-                      <Button variant="outline" size="sm">View Profile</Button>
+                      <Button variant="secondary">View Profile</Button>
                     </Link>
                   </td>
                 </tr>
